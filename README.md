@@ -2,9 +2,11 @@
 
 **TeX Viewer Online. View your TeX documents in any browser, no software needed.**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20708417.svg)](https://doi.org/10.5281/zenodo.20708417)
+
 Compile LaTeX and view it as a PDF, entirely in your browser. No account, no install, no server, and nothing is uploaded. Drop in a `.tex` file and get a PDF back. The TeX engine is bundled as WebAssembly and runs inside the page.
 
-Live demo: https://devharsh.github.io/tex2pdf/
+Live website: https://devharsh.github.io/tex2pdf/
 
 ![Screenshot of TeX Viewer Online: engine selector (XeLaTeX, pdfLaTeX), a file drop zone, live edit with VS Code controls, and the PDF preview pane](live.demo.png)
 
@@ -134,22 +136,7 @@ Devharsh Trivedi, PhD, CISSP. ORCID: https://orcid.org/0000-0001-6374-7249
 
 If you use this project, please cite it. Citation metadata is in [CITATION.cff](CITATION.cff). A plain-text form:
 
-> Trivedi, D. (2026). tex2pdf: TeX Viewer Online [Software]. https://github.com/devharsh/tex2pdf
-
-## Archiving and DOI (Zenodo)
-
-This repository is ready for Zenodo software archiving. The metadata (title, author with ORCID, license, keywords) is in [.zenodo.json](.zenodo.json) and [CITATION.cff](CITATION.cff). To mint a DOI:
-
-1. Sign in to https://zenodo.org with your GitHub account and authorize it.
-2. Open https://zenodo.org/account/settings/github/ and switch the toggle ON for `devharsh/tex2pdf`.
-3. On GitHub, publish a release (for example `v1.0.0`). Zenodo archives that release automatically and mints a DOI using `.zenodo.json`.
-4. Replace the line below with the DOI badge Zenodo gives you:
-
-   `[![DOI](https://zenodo.org/badge/DOI/<your-doi>.svg)](https://doi.org/<your-doi>)`
-
-## Indexing on Google Scholar
-
-Once Zenodo has minted the DOI, add the record to your Google Scholar profile: open your profile, choose Add, then Add article manually, and enter the title, author (Devharsh Trivedi), year, and the Zenodo DOI/URL so it links to the archived software.
+> Trivedi, D. (2026). tex2pdf: TeX Viewer Online (v1.0.0) [Software]. Zenodo. https://doi.org/10.5281/zenodo.20708417
 
 ## License
 

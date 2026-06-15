@@ -10,6 +10,11 @@ abstract: >-
   A static, in-browser LaTeX to PDF viewer. It compiles LaTeX entirely
   client side using a WebAssembly build of TeX Live (busytex) and renders
   the result with PDF.js. No server, no install, and nothing is uploaded.
+doi: 10.5281/zenodo.20708417
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.20708417
+    description: Concept DOI for all versions
 repository-code: "https://github.com/devharsh/tex2pdf"
 url: "https://devharsh.github.io/tex2pdf/"
 keywords:

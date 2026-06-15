@@ -1,81 +1,127 @@
-# tex2pdf: in-browser LaTeX to PDF
+# tex2pdf
 
-A static web app that lets you upload LaTeX files and view them as a PDF, entirely in the browser. The LaTeX compilation runs client side via a WebAssembly build of pdfTeX and XeTeX (SwiftLaTeX), and the resulting PDF is rendered with PDF.js. There is no backend. Uploaded files are processed in memory and are never sent to or stored on any server.
+**TeX Viewer Online. View your TeX documents in any browser, no software needed.**
+
+Compile LaTeX and view it as a PDF, entirely in your browser. No account, no install, no server, and nothing is uploaded. Drop in a `.tex` file and get a PDF back. The TeX engine is bundled as WebAssembly and runs inside the page.
+
+Live demo: https://devharsh.github.io/tex2pdf/
+
+## Why
+
+Most LaTeX setups need a local TeX install or a cloud service that uploads your files. tex2pdf does neither. A TeX engine (busytex) plus a TeX Live package set are shipped as static files and run client side, so compilation is private and self contained.
 
 ## Features
 
-- Upload a single `.tex` file, multiple files (images, `.bib`, `.cls`), or a `.zip` project.
-- Choose the engine: pdfTeX (fast, standard documents) or XeTeX (full Unicode and system fonts).
-- Automatic main-file detection, with a picker when several `.tex` files are present.
-- Inline PDF preview (all pages) plus a download button.
-- Custom 404 page.
+- Upload a single `.tex` file, several files together (figures, `.bib`, `.cls`), or a `.zip` project.
+- Two engines: XeLaTeX (default, most reliable here) and pdfLaTeX.
+- The basic TeX Live set plus extra packages bundled separately (booktabs, enumitem, url) so common documents compile out of the box.
+- Automatic main-file detection, with a picker when a project has more than one `.tex`.
+- Live elapsed timer and progress bar during loading and compilation.
+- Inline preview of every page, plus a one-click PDF download.
+- BibTeX runs automatically when a `.bib` file is present.
+- Responsive layout and keyboard-accessible controls. Custom 404 page.
+
+## Choosing an engine
+
+Keep the default, **XeLaTeX**. In this in-browser engine it handles fonts most reliably because it uses vector fonts directly.
+
+Use **pdfLaTeX** only if you prefer it. It is slightly faster, but it can fail when a document needs a bitmap font it must build on the fly, which is not possible in WebAssembly (you will see a font or `mktexpk` error in the log). If that happens, switch back to XeLaTeX and compile again.
+
+## Using it
+
+1. Open the site.
+2. Leave the engine on XeLaTeX (or pick pdfLaTeX).
+3. Drag in your `.tex` file, multiple files, or a `.zip` of your project.
+4. If there is more than one `.tex`, pick the main one (the file with `\documentclass`).
+5. Click Compile to PDF. The preview appears on the right; use Download PDF to save it.
+
+The first compile loads the engine and TeX Live (about 125 MB). Your browser caches it, so later compiles are fast (a few seconds).
+
+## Live editing with VS Code
+
+You can keep your usual editor and have the PDF rebuild as you save, with no upload:
+
+1. Click **Open a folder** and choose your project folder (grant read access once).
+2. Click **Open VS Code**, then in vscode.dev choose File, Open Folder, and pick the same folder.
+3. Edit and save in VS Code. This tool watches the folder and recompiles automatically on each save (toggle with "Auto-compile when a file is saved").
+
+This uses the browser File System Access API and works in Chrome and Edge. In other browsers the button is disabled and you can still upload files manually.
 
 ## How it works
 
-1. Your files are read in the browser with the File API and written into the engine's in-memory filesystem.
-2. SwiftLaTeX (pdfTeX or XeTeX compiled to WebAssembly) compiles them locally in a Web Worker.
-3. Any LaTeX packages the document needs are fetched on demand from the SwiftLaTeX TeX Live mirror at `https://texlive2.swiftlatex.com`.
-4. The PDF bytes are handed to PDF.js and drawn onto canvases. Nothing is uploaded or persisted.
+Your files are read with the browser File API and written into the engine's in-memory filesystem. busytex, a WebAssembly build of TeX Live, compiles them in a Web Worker. The bundled TeX Live "basic" set is served as static files; a few common packages that are not in basic live in `core/texmf/` and are written into the project at compile time. The resulting PDF bytes are rendered with PDF.js. Nothing is uploaded or stored.
 
-## Files in this repository
+## Package coverage
 
-- `index.html`: the whole application (HTML, CSS, and JS in one file).
-- `404.html`: custom not-found page.
-- `PdfTeXEngine.js`, `XeTeXEngine.js`: SwiftLaTeX engine wrappers.
-- `swiftlatexpdftex.js` / `.wasm`, `swiftlatexxetex.js` / `.wasm`: the compiled engines and their Web Worker glue. These must sit next to `index.html` because the engine loads its worker by a relative path.
-- `.nojekyll`: tells GitHub Pages to serve files as-is (no Jekyll processing).
-- `sample.tex`: a small document for testing.
+The bundled basic tier already includes the LaTeX kernel, article/report/book classes, amsmath, amssymb, geometry, graphics, hyperref and its dependencies, and many more. The full TeX Live (the "extra" tier, ~340 MB and ~27k files) does not load reliably in a browser, so instead a small set of extra packages is bundled in `core/texmf/`:
 
-## Test locally first (optional)
+```
+core/texmf/booktabs.sty
+core/texmf/enumitem.sty
+core/texmf/url.sty
+core/texmf/manifest.json   lists the bundled files
+```
 
-Opening `index.html` directly with a `file://` URL will not work, because the LaTeX engine runs in a Web Worker and loads WebAssembly, which browsers block on `file://`. Serve the folder over HTTP instead:
+To add another package, drop its `.sty` (and any dependencies not already in basic) into `core/texmf/`, add the filename to `manifest.json`, and commit. The app writes every bundled file into the compile directory, so `\usepackage{...}` finds it. A document that needs a package not in basic and not bundled will fail with a "File not found" message in the log naming the missing file.
+
+## Run locally
+
+Opening `index.html` from a `file://` path will not work, because browsers block Web Workers, WebAssembly, and ES module loading there. Serve the folder over HTTP instead:
 
 ```bash
+git clone https://github.com/devharsh/tex2pdf.git
 cd tex2pdf
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/` and compile `sample.tex`.
+Open `http://localhost:8000/` and compile `sample.tex`.
 
-## Deploy to GitHub Pages
+## Deploy your own
 
-From inside this `tex2pdf` folder:
+This is a static site, so any static host works. For GitHub Pages:
 
-```bash
-git init
-git add .
-git commit -m "Static in-browser LaTeX to PDF viewer"
-git branch -M main
-git remote add origin https://github.com/USERNAME/tex2pdf.git   # create this empty repo on github.com first
-git push -u origin main
+1. Fork this repository, or create your own and push these files (everything under `core/` must be committed; they are normal files, not Git LFS).
+2. In the repository, go to Settings, then Pages.
+3. Under Build and deployment, set Source to Deploy from a branch, choose `main` and the `/ (root)` folder, and save.
+4. Your site goes live at `https://USERNAME.github.io/tex2pdf/`.
+
+The included `.nojekyll` keeps GitHub Pages from processing the site with Jekyll. The app computes its asset path automatically, so it works under any subpath. If you host under a different name, custom domain, or path, update the single link in `404.html`.
+
+## Project structure
+
+```
+index.html                 The whole app UI (HTML, CSS, JS)
+404.html                   Custom not-found page
+sample.tex                 Example document for testing
+core/texlyre-busytex.js    The busytex runner (ES module)
+core/busytex/              Engine and TeX Live basic bundle
+  busytex.wasm             Combined TeX engine (about 32 MB)
+  busytex.js               Engine loader
+  busytex_pipeline.js      Compilation pipeline
+  busytex_worker.js        Web Worker entry
+  texlive-basic.data       TeX Live basic package set (about 91 MB)
+  texlive-basic.js         Data-package loader
+core/texmf/                Extra packages not in the basic set
+.nojekyll                  Serve files as-is on GitHub Pages
+NOTICE.md                  Third-party licenses and credits
 ```
 
-Then enable Pages:
+## Limitations
 
-1. On GitHub, open the repository, go to Settings, then Pages.
-2. Under Build and deployment, set Source to Deploy from a branch.
-3. Select branch `main` and folder `/ (root)`, then Save.
-4. After a minute, your site is live at `https://USERNAME.github.io/tex2pdf/`.
-
-Open that URL, drop in `sample.tex`, and click Compile to PDF.
-
-Note on the 404 link: `404.html` links back to `/tex2pdf/`. If you name the repository something other than `tex2pdf`, edit that link. If you use a custom domain or a user/organization Pages site served from the root, change the link to `/`.
-
-## Caveats
-
-- The first compile downloads the engine (about 2 MB for pdfTeX, about 3 MB for XeTeX) plus any required packages, so it can be slow. Later compiles are much faster.
-- It is heavier on phones than on desktops.
-- Very complex documents, exotic packages, or multi-pass BibTeX or biber workflows may hit limits.
-- Compilation depends on the SwiftLaTeX TeX Live mirror being reachable. If a compile hangs or fails to find packages, the mirror may be temporarily down.
+- First load is about 125 MB (then cached). It is heavier on phones than on desktops.
+- pdfLaTeX cannot build missing bitmap fonts; use XeLaTeX (the default) for those documents.
+- Coverage is the basic tier plus the bundled extras; arbitrary CTAN packages are not all available (see Package coverage).
+- Each visitor downloads the assets once. On GitHub Pages the soft bandwidth limit is about 100 GB per month, roughly 800 first-time loads.
 
 ## Privacy
 
-All processing is local to your browser. The only network calls are to load the page assets, the PDF.js and JSZip libraries from a CDN, and LaTeX packages from the SwiftLaTeX mirror during compilation. Your document content is not transmitted.
+All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and the PDF.js and JSZip libraries from a CDN. Your document content is never transmitted.
 
-## Licenses and credits
+## Credits and licenses
 
-- SwiftLaTeX engine and WebAssembly builds: copyright Elliott Wen and contributors, released under EPL-2.0 or GPL-2.0 with Classpath exception. Project: https://github.com/SwiftLaTeX/SwiftLaTeX
-- PDF.js: Mozilla, Apache-2.0.
-- JSZip: MIT.
+- TeX engine and WebAssembly build: [busytex](https://github.com/busytex/busytex) and the [TeXlyre busytex](https://github.com/TeXlyre/texlyre-busytex) distribution, under AGPL-3.0.
+- PDF rendering: [PDF.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache-2.0.
+- Zip reading: [JSZip](https://github.com/Stuk/jszip), MIT.
+- Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.
 
-The underlying TeX and LaTeX programs are distributed under their own respective licenses. See `NOTICE.md` for details.
+Because this project bundles busytex, the combined work is covered by the AGPL-3.0. Full details are in [NOTICE.md](NOTICE.md).

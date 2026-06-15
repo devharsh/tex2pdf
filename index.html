@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TeX to PDF, in your browser</title>
-<meta name="description" content="Upload LaTeX files and view them as PDF entirely in your browser. No server, no upload of your files anywhere.">
+<meta name="description" content="Upload LaTeX files and view them as PDF entirely in your browser. No server, nothing uploaded.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d;
-    --text:#e6edf3; --muted:#9198a1; --accent:#1f6feb; --accent2:#388bfd;
-    --ok:#2ea043; --err:#f85149; --warn:#d29922; --radius:10px;
+    --text:#e6edf3; --muted:#9aa3af; --accent:#1f6feb; --accent2:#58a6ff;
+    --ok:#3fb950; --err:#f85149; --warn:#d29922; --radius:10px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
@@ -21,122 +21,151 @@
   }
   a{color:var(--accent2); text-decoration:none}
   a:hover{text-decoration:underline}
-  header{
-    padding:18px 20px; border-bottom:1px solid var(--border);
-    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  }
+  :focus-visible{outline:3px solid var(--accent2); outline-offset:2px; border-radius:6px}
+  .skip{position:absolute; left:-999px; top:0; background:var(--accent); color:#fff; padding:8px 12px; z-index:10}
+  .skip:focus{left:8px; top:8px}
+  header{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
   header h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
   header .sub{color:var(--muted); font-size:13px}
-  .wrap{flex:1; display:grid; grid-template-columns:380px 1fr; gap:0; min-height:0}
-  @media (max-width:880px){ .wrap{grid-template-columns:1fr} }
-  .side{
-    border-right:1px solid var(--border); padding:18px; overflow:auto;
-    display:flex; flex-direction:column; gap:16px; background:var(--panel);
-  }
+  .pill{display:inline-block; font-size:11px; padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
+  .wrap{flex:1; display:grid; grid-template-columns:minmax(320px,380px) 1fr; min-height:0}
+  @media (max-width:860px){ .wrap{grid-template-columns:1fr} body{height:auto} #viewer{min-height:55vh} }
+  .side{border-right:1px solid var(--border); padding:18px; overflow:auto; display:flex; flex-direction:column; gap:16px; background:var(--panel)}
+  @media (max-width:860px){ .side{border-right:0; border-bottom:1px solid var(--border)} }
   .main{padding:18px; overflow:auto; display:flex; flex-direction:column; gap:14px; min-height:0}
   .card{background:var(--panel2); border:1px solid var(--border); border-radius:var(--radius); padding:14px}
-  .label{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0 0 8px}
-  .drop{
-    border:2px dashed var(--border); border-radius:var(--radius); padding:26px 16px; text-align:center;
-    cursor:pointer; transition:border-color .15s, background .15s; color:var(--muted);
-  }
+  fieldset.card{margin:0}
+  legend, .label{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); padding:0; margin:0 0 8px}
+  .drop{border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; color:var(--muted); width:100%; background:transparent}
   .drop:hover,.drop.drag{border-color:var(--accent); background:rgba(31,111,235,.08); color:var(--text)}
   .drop strong{color:var(--text)}
-  .seg{display:flex; gap:8px}
-  .seg label{
-    flex:1; text-align:center; padding:8px 10px; border:1px solid var(--border); border-radius:8px;
-    cursor:pointer; font-size:14px; user-select:none;
-  }
-  .seg input{display:none}
-  .seg input:checked + span{font-weight:650}
-  .seg label:has(input:checked){border-color:var(--accent); background:rgba(31,111,235,.14)}
+  .seg{display:flex; gap:8px; border:0; padding:0; margin:0}
+  .seg label{flex:1; text-align:center; padding:10px; border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:14px; min-height:44px; display:flex; align-items:center; justify-content:center}
+  .seg label:has(input:checked){border-color:var(--accent); background:rgba(31,111,235,.16); font-weight:650}
+  .seg input{position:absolute; opacity:0; width:1px; height:1px}
+  .seg label:has(input:focus-visible){outline:3px solid var(--accent2); outline-offset:2px}
   select,button{font:inherit}
-  select{
-    width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border);
-    border-radius:8px; padding:8px 10px;
-  }
-  .btn{
-    width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px;
-    padding:11px 14px; font-weight:650; cursor:pointer; transition:background .15s;
-  }
+  select{width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; min-height:44px}
+  .btn{width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:12px 14px; font-weight:650; cursor:pointer; transition:background .15s; min-height:44px}
   .btn:hover{background:#2c7cf0}
   .btn:disabled{background:#21262d; color:var(--muted); cursor:not-allowed}
   .btn.secondary{background:transparent; border:1px solid var(--border); color:var(--text)}
-  .btn.secondary:hover{background:rgba(255,255,255,.04)}
+  .btn.secondary:hover{background:rgba(255,255,255,.05)}
   .row{display:flex; gap:8px}
-  ul.files{list-style:none; margin:0; padding:0; font-size:13px; max-height:170px; overflow:auto}
+  ul.files{list-style:none; margin:10px 0 0; padding:0; font-size:13px; max-height:160px; overflow:auto}
   ul.files li{display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid var(--border)}
   ul.files li:last-child{border-bottom:0}
   ul.files .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   ul.files .mn{color:var(--ok); font-size:11px; align-self:center}
   .status{display:flex; align-items:center; gap:10px; font-size:14px}
   .dot{width:9px; height:9px; border-radius:50%; background:var(--muted); flex:none}
-  .dot.busy{background:var(--warn); animation:pulse 1s infinite}
-  .dot.ok{background:var(--ok)} .dot.err{background:var(--err)}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  .spin{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:rot .7s linear infinite;display:none}
-  @keyframes rot{to{transform:rotate(360deg)}}
+  .dot.busy{background:var(--warn)} .dot.ok{background:var(--ok)} .dot.err{background:var(--err)}
+  .progress[hidden]{display:none}
+  .progress{display:flex; flex-direction:column; gap:6px}
+  .ptrack{height:8px; background:#21262d; border-radius:999px; overflow:hidden}
+  .pfill{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:999px; transition:width .2s ease}
+  .progress.indeterminate .pfill{width:40%; animation:slide 1.1s infinite ease-in-out}
+  @keyframes slide{0%{margin-left:-40%}100%{margin-left:100%}}
+  .pmeta{display:flex; justify-content:space-between; font-size:12px; color:var(--muted)}
+  .note{font-size:12px; color:var(--muted)}
+  details.help{border:1px solid var(--border); border-radius:8px; background:transparent}
+  details.help summary{cursor:pointer; padding:8px 10px; font-size:13px; color:var(--accent2)}
+  details.help div{padding:0 10px 10px; font-size:13px; color:var(--muted)}
+  details.help th{color:var(--text); text-align:left; padding-right:14px}
+  details.help td{padding-right:14px; vertical-align:top}
   #viewer{flex:1; overflow:auto; border:1px solid var(--border); border-radius:var(--radius); background:#525659; padding:18px; min-height:240px}
   #viewer canvas{display:block; margin:0 auto 16px; box-shadow:0 2px 12px rgba(0,0,0,.5); max-width:100%; height:auto; background:#fff}
-  #viewer .empty{color:#cfd3d7; text-align:center; margin-top:60px; font-size:14px}
-  details{border:1px solid var(--border); border-radius:8px; background:var(--panel2)}
-  summary{cursor:pointer; padding:8px 12px; font-size:13px; color:var(--muted)}
-  pre.log{margin:0; padding:12px; max-height:240px; overflow:auto; font-size:12px;
-    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; color:#cdd6e0; border-top:1px solid var(--border)}
-  .note{font-size:12px; color:var(--muted)}
-  .pill{display:inline-block; font-size:11px; padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
+  #viewer .empty{color:#e6e9ec; text-align:center; margin-top:60px; font-size:14px}
+  details.log{border:1px solid var(--border); border-radius:8px; background:var(--panel2)}
+  details.log summary{cursor:pointer; padding:8px 12px; font-size:13px; color:var(--muted)}
+  pre.log{margin:0; padding:12px; max-height:260px; overflow:auto; font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; color:#cdd6e0; border-top:1px solid var(--border)}
   footer{border-top:1px solid var(--border); padding:10px 20px; font-size:12px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to preview</a>
 <header>
   <h1>TeX to PDF <span class="pill">in-browser</span></h1>
-  <span class="sub">Compiles LaTeX with WebAssembly and renders the PDF locally. Your files never leave your device.</span>
+  <span class="sub">Compiles LaTeX with WebAssembly and renders the PDF locally. Nothing is uploaded.</span>
 </header>
 
 <div class="wrap">
-  <aside class="side">
-    <div class="card">
-      <p class="label">1. Engine</p>
-      <div class="seg" id="engineSeg">
-        <label><input type="radio" name="engine" value="pdftex" checked><span>pdfTeX</span></label>
-        <label><input type="radio" name="engine" value="xetex"><span>XeTeX</span></label>
+  <aside class="side" aria-label="Controls">
+    <fieldset class="card seg-wrap">
+      <legend>1. Engine</legend>
+      <div class="seg" role="radiogroup" aria-label="LaTeX engine">
+        <label><input type="radio" name="engine" value="xetex" checked> XeLaTeX</label>
+        <label><input type="radio" name="engine" value="pdftex"> pdfLaTeX</label>
       </div>
-      <p class="note" style="margin:8px 0 0">pdfTeX is faster for standard documents. XeTeX adds full Unicode and system-font (fontspec) support.</p>
-    </div>
+      <details class="help" style="margin-top:10px">
+        <summary>Which one should I choose?</summary>
+        <div>
+          <p style="margin:.4em 0">Not sure? Keep <strong>XeLaTeX</strong> (the default). In this in-browser engine it handles fonts most reliably.</p>
+          <table>
+            <tr><th>XeLaTeX</th><td>Recommended default. Uses vector fonts directly, supports system or OpenType fonts (<code>fontspec</code>) and full Unicode.</td></tr>
+            <tr><th>pdfLaTeX</th><td>Slightly faster, but it can fail when a document needs a bitmap font it has to build on the fly, which is not possible here. If you get a font error, switch to XeLaTeX.</td></tr>
+          </table>
+        </div>
+      </details>
+    </fieldset>
 
     <div class="card">
-      <p class="label">2. Files</p>
-      <div class="drop" id="drop">
+      <p class="label" id="filesLabel">2. Files</p>
+      <button type="button" class="drop" id="drop" aria-describedby="dropHint">
         <strong>Drop files here</strong> or click to choose<br>
-        <span class="note">A single .tex, several files (images, .bib, .cls), or a .zip project</span>
-      </div>
-      <input type="file" id="fileInput" multiple
+        <span class="note" id="dropHint">A single .tex, several files (images, .bib, .cls), or a .zip project</span>
+      </button>
+      <input type="file" id="fileInput" multiple aria-labelledby="filesLabel"
              accept=".tex,.bib,.cls,.sty,.ltx,.def,.clo,.bbl,.txt,.zip,.png,.jpg,.jpeg,.gif,.pdf,.eps" hidden>
-      <ul class="files" id="fileList" style="margin-top:10px"></ul>
+      <ul class="files" id="fileList" aria-live="polite"></ul>
     </div>
 
     <div class="card" id="mainCard" style="display:none">
-      <p class="label">3. Main file</p>
+      <label class="label" for="mainSelect">3. Main file</label>
       <select id="mainSelect"></select>
       <p class="note" style="margin:8px 0 0">The .tex file with <code>\documentclass</code> that starts the document.</p>
     </div>
 
-    <div class="row">
-      <button class="btn" id="compileBtn" disabled>Compile to PDF</button>
-      <button class="btn secondary" id="resetBtn" title="Clear everything" style="width:auto;padding-left:14px;padding-right:14px">Reset</button>
+    <div class="card" id="liveCard">
+      <p class="label">Live edit with VS Code</p>
+      <div class="row">
+        <button class="btn secondary" id="openFolderBtn" type="button" style="flex:1">Open a folder</button>
+        <button class="btn secondary" id="vscodeBtn" type="button" style="flex:1">Open VS Code</button>
+      </div>
+      <label class="note" style="display:flex; align-items:center; gap:7px; margin-top:10px; cursor:pointer">
+        <input type="checkbox" id="autoCompile" checked style="width:16px;height:16px"> Auto-compile when a file is saved
+      </label>
+      <p class="note" id="liveStatus" style="margin-top:8px" aria-live="polite"></p>
+      <p class="note" id="liveUnsupported" hidden>Live folder needs Chrome or Edge. You can still upload files above.</p>
+      <details class="help" style="margin-top:10px">
+        <summary>How the live workflow works</summary>
+        <div>
+          <p style="margin:.4em 0">Click <strong>Open a folder</strong> and choose your project folder. Then open the <em>same</em> folder in VS Code (use the Open VS Code button, then File, Open Folder in vscode.dev).</p>
+          <p style="margin:.4em 0">Edit and save in VS Code. This tool watches the folder and rebuilds the PDF automatically on each save.</p>
+        </div>
+      </details>
     </div>
 
-    <div class="status" id="status">
-      <span class="dot" id="dot"></span>
-      <span class="spin" id="spin"></span>
+    <div class="row">
+      <button class="btn" id="compileBtn" disabled>Compile to PDF</button>
+      <button class="btn secondary" id="resetBtn" title="Clear everything" style="width:auto;padding-left:16px;padding-right:16px">Reset</button>
+    </div>
+
+    <div class="progress" id="progress" hidden aria-hidden="true">
+      <div class="ptrack"><div class="pfill" id="pfill" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+      <div class="pmeta"><span id="pLabel">Working...</span><span id="elapsed">0.0s</span></div>
+    </div>
+
+    <div class="status" role="status" aria-live="polite" id="status">
+      <span class="dot" id="dot" aria-hidden="true"></span>
       <span id="statusText">Idle. Add a .tex file to begin.</span>
     </div>
 
-    <p class="note">First compile downloads the engine (about 2 to 6 MB) and any LaTeX packages your document needs from the SwiftLaTeX TeX Live mirror, so it can take a little while. Later compiles are much faster.</p>
+    <p class="note">First compile loads the engine and a bundled TeX Live (about 125 MB), cached by your browser afterward, so later compiles are quick. Everything runs locally with no server. A desktop browser is recommended for the first load.</p>
   </aside>
 
-  <main class="main">
+  <main class="main" id="main">
     <div class="row" style="align-items:center; justify-content:space-between">
       <div class="status">
         <strong style="font-weight:650">Preview</strong>
@@ -144,8 +173,8 @@
       </div>
       <button class="btn" id="downloadBtn" disabled style="width:auto; padding-left:18px; padding-right:18px">Download PDF</button>
     </div>
-    <div id="viewer"><div class="empty">Your compiled PDF will appear here.</div></div>
-    <details id="logBox">
+    <div id="viewer" tabindex="0" aria-label="PDF preview"><div class="empty">Your compiled PDF will appear here.</div></div>
+    <details class="log" id="logBox">
       <summary>Compilation log</summary>
       <pre class="log" id="log">No log yet.</pre>
     </details>
@@ -153,275 +182,340 @@
 </div>
 
 <footer>
-  <span>Runs fully client side. Powered by SwiftLaTeX (WebAssembly) and PDF.js.</span>
+  <span>Runs fully client side. Powered by busytex (TeX Live in WebAssembly) and PDF.js.</span>
   <span>No tracking. No file uploads to any server.</span>
 </footer>
 
-<!-- LaTeX engines (vendored, served from this site). The heavy .wasm loads only on first compile. -->
-<script src="PdfTeXEngine.js"></script>
-<script src="XeTeXEngine.js"></script>
-<!-- PDF rendering and zip extraction (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script>
-(function(){
-  "use strict";
+<script type="module">
+import { BusyTexRunner, PdfLatex, XeLatex } from "./core/texlyre-busytex.js";
 
-  // ---- PDF.js worker ----
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+}
+
+const $ = (id) => document.getElementById(id);
+const drop=$("drop"), fileInput=$("fileInput"), fileListEl=$("fileList");
+const mainCard=$("mainCard"), mainSelect=$("mainSelect");
+const compileBtn=$("compileBtn"), resetBtn=$("resetBtn"), downloadBtn=$("downloadBtn");
+const dot=$("dot"), statusText=$("statusText");
+const viewer=$("viewer"), logEl=$("log"), logBox=$("logBox"), pageInfo=$("pageInfo");
+const progress=$("progress"), pfill=$("pfill"), pLabel=$("pLabel"), elapsedEl=$("elapsed");
+
+const BASE = new URL("core/busytex", document.baseURI).href;
+const TEXMF = new URL("core/texmf", document.baseURI).href;
+const DATA_PACKAGES = ["texlive-basic.js"];
+// Big assets pre-fetched with a real progress bar (then served from cache to the worker).
+const WARM = [
+  { url: BASE + "/busytex.wasm", size: 32501898 },
+  { url: BASE + "/texlive-basic.data", size: 90782222 },
+  { url: BASE + "/texlive-basic.js", size: 2049135 }
+];
+
+let runner = null, runnerReady = false, tools = {};
+let bundled = null;
+let projectFiles = [];   // { path, bytes:Uint8Array, isText }
+let mainFile = null;
+let lastPdf = null;
+let timerId = null, timerStart = 0;
+let compiling = false, dirHandle = null, watchTimer = null, lastSig = "";
+
+const TEXT_RE = /\.(tex|bib|cls|sty|ltx|def|clo|bbl|aux|txt|tikz|sub|cfg|fd|enc|map)$/i;
+const TEX_RE  = /\.tex$/i;
+
+function setStatus(text, kind){
+  statusText.textContent = text;
+  dot.className = "dot" + (kind ? " " + kind : "");
+}
+function decode(bytes){ return new TextDecoder("utf-8").decode(bytes); }
+function currentEngineKind(){
+  const r = document.querySelector('input[name="engine"]:checked');
+  return r ? r.value : "xetex";
+}
+
+// ---- timer + progress ----
+function startTimer(){
+  timerStart = performance.now();
+  elapsedEl.textContent = "0.0s";
+  timerId = setInterval(() => { elapsedEl.textContent = ((performance.now()-timerStart)/1000).toFixed(1) + "s"; }, 100);
+}
+function stopTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
+function showProgress(label){
+  progress.hidden = false; progress.setAttribute("aria-hidden","false");
+  pLabel.textContent = label || "Working...";
+}
+function hideProgress(){ progress.hidden = true; progress.setAttribute("aria-hidden","true"); stopTimer(); }
+function setDeterminate(pct){
+  progress.classList.remove("indeterminate");
+  const v = Math.max(0, Math.min(100, Math.round(pct)));
+  pfill.style.width = v + "%"; pfill.setAttribute("aria-valuenow", v);
+}
+function setIndeterminate(){
+  progress.classList.add("indeterminate");
+  pfill.removeAttribute("aria-valuenow"); pfill.style.width = "";
+}
+
+// ---- File intake ----
+function openPicker(){ fileInput.click(); }
+drop.addEventListener("click", openPicker);
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openPicker(); } });
+["dragover","dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+fileInput.addEventListener("change", () => { if (fileInput.files) addFiles(fileInput.files); fileInput.value=""; });
+
+async function addFiles(fileList){
+  for (const f of Array.from(fileList)){
+    const buf = new Uint8Array(await f.arrayBuffer());
+    if (/\.zip$/i.test(f.name)) await addZip(buf);
+    else upsertFile(cleanPath(f.name), buf);
   }
+  refreshFileUI();
+}
+async function addZip(bytes){
+  if (!window.JSZip){ setStatus("Zip support failed to load.", "err"); return; }
+  try {
+    const zip = await JSZip.loadAsync(bytes);
+    for (const e of Object.values(zip.files)){ if (e.dir) continue; upsertFile(cleanPath(e.name), await e.async("uint8array")); }
+  } catch(err){ setStatus("Could not read the zip file.", "err"); console.error(err); }
+}
+function cleanPath(p){ return p.replace(/\\/g,"/").replace(/^\.?\//,""); }
+function upsertFile(path, bytes){
+  if (/(^|\/)__MACOSX\//.test(path) || /(^|\/)\.DS_Store$/.test(path)) return;
+  const isText = TEXT_RE.test(path);
+  const existing = projectFiles.find(f => f.path === path);
+  if (existing){ existing.bytes = bytes; existing.isText = isText; }
+  else projectFiles.push({ path, bytes, isText });
+}
+function refreshFileUI(){
+  const texFiles = projectFiles.filter(f => TEX_RE.test(f.path)).map(f => f.path);
+  if (!texFiles.includes(mainFile)) mainFile = pickMain(texFiles);
+  fileListEl.innerHTML = "";
+  projectFiles.forEach(f => {
+    const li=document.createElement("li");
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=f.path; nm.title=f.path; li.appendChild(nm);
+    if (f.path===mainFile){ const m=document.createElement("span"); m.className="mn"; m.textContent="main"; li.appendChild(m); }
+    fileListEl.appendChild(li);
+  });
+  if (texFiles.length > 1){
+    mainCard.style.display="";
+    mainSelect.innerHTML="";
+    texFiles.forEach(p => { const o=document.createElement("option"); o.value=p; o.textContent=p; if(p===mainFile)o.selected=true; mainSelect.appendChild(o); });
+  } else mainCard.style.display="none";
+  compileBtn.disabled = !mainFile;
+  if (mainFile) setStatus("Ready. Main file: " + mainFile, "");
+  else if (projectFiles.length) setStatus("No .tex file found. Add one to compile.", "err");
+  else setStatus("Idle. Add a .tex file to begin.", "");
+}
+function pickMain(texFiles){
+  if (!texFiles.length) return null;
+  const named = texFiles.find(p => /(^|\/)main\.tex$/i.test(p));
+  if (named) return named;
+  for (const p of texFiles){ const f = projectFiles.find(x => x.path === p); if (f && f.isText && decode(f.bytes).includes("\\documentclass")) return p; }
+  return texFiles[0];
+}
+mainSelect.addEventListener("change", () => { mainFile = mainSelect.value; refreshFileUI(); });
+resetBtn.addEventListener("click", () => {
+  stopWatching(); if ($("liveStatus")) $("liveStatus").textContent = "";
+  projectFiles=[]; mainFile=null; lastPdf=null;
+  fileListEl.innerHTML=""; mainCard.style.display="none";
+  viewer.innerHTML='<div class="empty">Your compiled PDF will appear here.</div>';
+  logEl.textContent="No log yet."; pageInfo.textContent=""; hideProgress();
+  downloadBtn.disabled=true; compileBtn.disabled=true;
+  setStatus("Cleared. Add a .tex file to begin.", "");
+});
 
-  // ---- DOM ----
-  const $ = (id) => document.getElementById(id);
-  const drop = $("drop"), fileInput = $("fileInput"), fileListEl = $("fileList");
-  const mainCard = $("mainCard"), mainSelect = $("mainSelect");
-  const compileBtn = $("compileBtn"), resetBtn = $("resetBtn"), downloadBtn = $("downloadBtn");
-  const dot = $("dot"), spin = $("spin"), statusText = $("statusText");
-  const viewer = $("viewer"), logEl = $("log"), logBox = $("logBox"), pageInfo = $("pageInfo");
-
-  // ---- State ----
-  const engines = { pdftex: null, xetex: null };   // cached engine instances
-  let projectFiles = [];   // { path, bytes:Uint8Array, isText }
-  let mainFile = null;
-  let lastPdf = null;      // Uint8Array of last successful PDF
-
-  const TEXT_RE = /\.(tex|bib|cls|sty|ltx|def|clo|bbl|aux|txt|tikz|sub|cfg|fd|enc|map)$/i;
-  const TEX_RE  = /\.tex$/i;
-
-  function setStatus(text, kind){ // kind: '', 'busy', 'ok', 'err'
-    statusText.textContent = text;
-    dot.className = "dot" + (kind && kind !== "busy" ? " " + kind : "");
-    spin.style.display = kind === "busy" ? "inline-block" : "none";
-    if (kind === "busy") dot.classList.add("busy");
-  }
-
-  function currentEngineKind(){
-    const r = document.querySelector('input[name="engine"]:checked');
-    return r ? r.value : "pdftex";
-  }
-
-  // ---- File intake ----
-  drop.addEventListener("click", () => fileInput.click());
-  ["dragover","dragenter"].forEach(ev => drop.addEventListener(ev, e => {
-    e.preventDefault(); drop.classList.add("drag");
-  }));
-  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => {
-    e.preventDefault(); drop.classList.remove("drag");
-  }));
-  drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
-  fileInput.addEventListener("change", () => { if (fileInput.files) addFiles(fileInput.files); fileInput.value = ""; });
-
-  async function addFiles(fileList){
-    const arr = Array.from(fileList);
-    for (const f of arr){
-      const buf = new Uint8Array(await f.arrayBuffer());
-      if (/\.zip$/i.test(f.name)) {
-        await addZip(buf);
-      } else {
-        upsertFile(cleanPath(f.name), buf);
-      }
+// ---- bundled packages (extra .sty not in the basic TeX Live set) ----
+async function getBundled(){
+  if (bundled) return bundled;
+  bundled = [];
+  try {
+    const mani = await fetch(TEXMF + "/manifest.json").then(r => r.json());
+    for (const name of (mani.packages || [])){
+      const content = await fetch(TEXMF + "/" + name).then(r => r.text());
+      bundled.push({ path: name, content });
     }
-    refreshFileUI();
+  } catch(e){ console.warn("Bundle load failed:", e); }
+  return bundled;
+}
+
+// ---- warm assets with a real progress bar, then init engine ----
+async function warmAssets(){
+  const total = WARM.reduce((a,f)=>a+f.size,0);
+  let done = 0;
+  for (const f of WARM){
+    const resp = await fetch(f.url);
+    if (!resp.ok || !resp.body){ done += f.size; setDeterminate(done/total*100); continue; }
+    const reader = resp.body.getReader();
+    while (true){ const {done:d, value} = await reader.read(); if (d) break; done += value.length; setDeterminate(done/total*100); }
   }
+}
+async function getRunner(){
+  if (runner && runnerReady) return runner;
+  showProgress("Downloading engine and TeX Live (about 125 MB, first run only)"); setDeterminate(0); startTimer();
+  await warmAssets();
+  pLabel.textContent = "Starting the TeX engine"; setIndeterminate();
+  const r = new BusyTexRunner({ busytexBasePath: BASE, engineMode: "combined", preloadDataPackages: DATA_PACKAGES, catalogDataPackages: DATA_PACKAGES });
+  await r.initialize();
+  runner = r; runnerReady = true;
+  tools.pdftex = new PdfLatex(runner);
+  tools.xetex  = new XeLatex(runner);
+  return runner;
+}
 
-  async function addZip(bytes){
-    if (!window.JSZip){ setStatus("Zip support failed to load.", "err"); return; }
-    try {
-      const zip = await JSZip.loadAsync(bytes);
-      const entries = Object.values(zip.files).filter(e => !e.dir);
-      for (const e of entries){
-        const data = await e.async("uint8array");
-        upsertFile(cleanPath(e.name), data);
-      }
-    } catch(err){
-      setStatus("Could not read the zip file.", "err");
-      console.error(err);
-    }
-  }
+compileBtn.addEventListener("click", compile);
+async function compile(){
+  if (!mainFile){ setStatus("Choose a main .tex file first.", "err"); return; }
+  if (compiling) return;
+  compiling = true;
+  compileBtn.disabled = true; downloadBtn.disabled = true;
+  const kind = currentEngineKind();
+  try {
+    setStatus("Preparing the engine...", "busy");
+    await getRunner();
+    const pkgs = await getBundled();
 
-  // Strip a leading folder if the whole zip is wrapped in one, and normalise slashes.
-  function cleanPath(p){
-    return p.replace(/\\/g, "/").replace(/^\.?\//, "");
-  }
+    const tool = kind === "xetex" ? tools.xetex : tools.pdftex;
+    const mf = projectFiles.find(f => f.path === mainFile);
+    const additional = projectFiles.filter(f => f.path !== mainFile).map(f => ({ path: f.path, content: f.isText ? decode(f.bytes) : f.bytes }));
+    // add bundled packages the user did not supply themselves
+    const have = new Set(projectFiles.map(f => f.path));
+    for (const p of pkgs){ if (!have.has(p.path)) additional.push(p); }
 
-  function upsertFile(path, bytes){
-    if (/(^|\/)__MACOSX\//.test(path) || /(^|\/)\.DS_Store$/.test(path)) return;
-    const isText = TEXT_RE.test(path);
-    const existing = projectFiles.find(f => f.path === path);
-    if (existing){ existing.bytes = bytes; existing.isText = isText; }
-    else projectFiles.push({ path, bytes, isText });
-  }
+    showProgress("Compiling " + mainFile + " with " + (kind==="xetex"?"XeLaTeX":"pdfLaTeX")); setIndeterminate();
+    if (!timerId) startTimer();
+    setStatus("Compiling " + mainFile + "...", "busy");
+    const t0 = performance.now();
+    const r = await tool.compile({ input: decode(mf.bytes), mainTexPath: mainFile, additionalFiles: additional, dataPackagesJs: DATA_PACKAGES });
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    hideProgress();
 
-  function refreshFileUI(){
-    // choose / keep a sensible main file
-    const texFiles = projectFiles.filter(f => TEX_RE.test(f.path)).map(f => f.path);
-    if (!texFiles.includes(mainFile)) mainFile = pickMain(texFiles);
-
-    fileListEl.innerHTML = "";
-    projectFiles.forEach(f => {
-      const li = document.createElement("li");
-      const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = f.path; nm.title = f.path;
-      li.appendChild(nm);
-      if (f.path === mainFile){ const m = document.createElement("span"); m.className = "mn"; m.textContent = "main"; li.appendChild(m); }
-      fileListEl.appendChild(li);
-    });
-
-    if (texFiles.length > 1){
-      mainCard.style.display = "";
-      mainSelect.innerHTML = "";
-      texFiles.forEach(p => {
-        const o = document.createElement("option"); o.value = p; o.textContent = p;
-        if (p === mainFile) o.selected = true; mainSelect.appendChild(o);
-      });
+    logEl.textContent = r.log || "(no log returned)";
+    if (r.success && r.pdf && r.pdf.length){
+      lastPdf = r.pdf.slice(0);
+      await renderPdf(r.pdf);
+      downloadBtn.disabled = false;
+      setStatus("Done in " + secs + "s. " + (r.pdf.length/1024).toFixed(0) + " KB PDF.", "ok");
     } else {
-      mainCard.style.display = "none";
-    }
-    compileBtn.disabled = !mainFile;
-    if (mainFile) setStatus("Ready. Main file: " + mainFile, "");
-    else if (projectFiles.length) setStatus("No .tex file found. Add one to compile.", "err");
-    else setStatus("Idle. Add a .tex file to begin.", "");
-  }
-
-  function pickMain(texFiles){
-    if (!texFiles.length) return null;
-    const named = texFiles.find(p => /(^|\/)main\.tex$/i.test(p));
-    if (named) return named;
-    // prefer a file that declares a document class
-    for (const p of texFiles){
-      const f = projectFiles.find(x => x.path === p);
-      if (f && f.isText && decode(f.bytes).includes("\\documentclass")) return p;
-    }
-    return texFiles[0];
-  }
-
-  mainSelect.addEventListener("change", () => { mainFile = mainSelect.value; refreshFileUI(); });
-
-  resetBtn.addEventListener("click", () => {
-    projectFiles = []; mainFile = null; lastPdf = null;
-    fileListEl.innerHTML = ""; mainCard.style.display = "none";
-    viewer.innerHTML = '<div class="empty">Your compiled PDF will appear here.</div>';
-    logEl.textContent = "No log yet."; pageInfo.textContent = "";
-    downloadBtn.disabled = true; compileBtn.disabled = true;
-    setStatus("Cleared. Add a .tex file to begin.", "");
-  });
-
-  // ---- Engine ----
-  function decode(bytes){ return new TextDecoder("utf-8").decode(bytes); }
-
-  function getEngineCtor(kind){
-    if (kind === "xetex") return window.XeTeXEngine || (window.exports && window.exports.XeTeXEngine);
-    return window.PdfTeXEngine || (window.exports && window.exports.PdfTeXEngine);
-  }
-
-  async function getEngine(kind){
-    if (engines[kind]) return engines[kind];
-    const Ctor = getEngineCtor(kind);
-    if (!Ctor) throw new Error("Engine script for " + kind + " did not load.");
-    setStatus("Loading " + (kind === "xetex" ? "XeTeX" : "pdfTeX") + " engine...", "busy");
-    const eng = new Ctor();
-    await eng.loadEngine();
-    engines[kind] = eng;
-    return eng;
-  }
-
-  function parentDirs(path){
-    const parts = path.split("/"); parts.pop();
-    const dirs = []; let cur = "";
-    for (const part of parts){ cur = cur ? cur + "/" + part : part; if (cur) dirs.push(cur); }
-    return dirs;
-  }
-
-  compileBtn.addEventListener("click", compile);
-
-  async function compile(){
-    if (!mainFile){ setStatus("Choose a main .tex file first.", "err"); return; }
-    compileBtn.disabled = true; downloadBtn.disabled = true;
-    const kind = currentEngineKind();
-    try {
-      const eng = await getEngine(kind);
-
-      // Clean working directory so stale files from a previous project do not interfere.
-      try { eng.flushCache(); } catch(_){}
-
-      // Create folders (deepest paths need their parents first).
-      const allDirs = new Set();
-      projectFiles.forEach(f => parentDirs(f.path).forEach(d => allDirs.add(d)));
-      Array.from(allDirs).sort((a,b) => a.split("/").length - b.split("/").length)
-        .forEach(d => { try { eng.makeMemFSFolder(d); } catch(_){} });
-
-      // Write files into the in-memory filesystem.
-      projectFiles.forEach(f => {
-        eng.writeMemFSFile(f.path, f.isText ? decode(f.bytes) : f.bytes);
-      });
-
-      eng.setEngineMainFile(mainFile);
-
-      setStatus("Compiling " + mainFile + "...", "busy");
-      const t0 = performance.now();
-      const r = await eng.compileLaTeX();
-      const secs = ((performance.now() - t0) / 1000).toFixed(1);
-
-      logEl.textContent = r.log || "(no log returned)";
-      if (r.status === 0 && r.pdf && r.pdf.length){
-        lastPdf = r.pdf.slice(0); // keep an untouched copy for download
-        await renderPdf(r.pdf);
-        downloadBtn.disabled = false;
-        setStatus("Done in " + secs + "s. " + (r.pdf.length/1024).toFixed(0) + " KB PDF.", "ok");
-      } else {
-        viewer.innerHTML = '<div class="empty">Compilation failed. See the log below for details.</div>';
-        pageInfo.textContent = "";
-        setStatus("Compilation failed (status " + r.status + "). Check the log.", "err");
-        logBox.open = true;
-      }
-    } catch(err){
-      console.error(err);
-      setStatus("Error: " + (err && err.message ? err.message : "compilation failed") + ". The TeX Live mirror may be unreachable.", "err");
-      logEl.textContent = (logEl.textContent && logEl.textContent !== "No log yet." ? logEl.textContent + "\n\n" : "") + String(err);
+      viewer.innerHTML = '<div class="empty">Compilation failed. See the log below for details.</div>';
+      pageInfo.textContent = "";
+      const miss = (r.log||"").match(/File `([^']+)' not found/);
+      const fontFail = /mktexpk|fork\(\)|not loadable|Metafont/i.test(r.log||"");
+      if (miss) setStatus("Missing package: " + miss[1] + ". It is not in the bundled set.", "err");
+      else if (fontFail && kind === "pdftex") setStatus("pdfLaTeX could not build a font. Switch the engine to XeLaTeX (top left) and compile again.", "err");
+      else setStatus("Compilation failed. Check the log.", "err");
       logBox.open = true;
-    } finally {
-      compileBtn.disabled = !mainFile;
     }
+  } catch(err){
+    console.error(err); hideProgress();
+    setStatus("Error: " + (err && err.message ? err.message : "compilation failed"), "err");
+    logEl.textContent = (logEl.textContent && logEl.textContent !== "No log yet." ? logEl.textContent + "\n\n" : "") + String(err && err.stack || err);
+    logBox.open = true;
+  } finally {
+    compileBtn.disabled = !mainFile; stopTimer(); compiling = false;
   }
+}
 
-  // ---- Render with PDF.js ----
-  async function renderPdf(bytes){
-    if (!window.pdfjsLib){ setStatus("PDF viewer failed to load.", "err"); return; }
-    viewer.innerHTML = "";
-    const doc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
-    pageInfo.textContent = doc.numPages + (doc.numPages === 1 ? " page" : " pages");
-    const targetWidth = Math.min(viewer.clientWidth - 36, 900);
-    for (let n = 1; n <= doc.numPages; n++){
-      const page = await doc.getPage(n);
-      const base = page.getViewport({ scale: 1 });
-      const scale = (targetWidth / base.width) * (window.devicePixelRatio || 1);
-      const vp = page.getViewport({ scale });
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
-      canvas.style.width = Math.floor(vp.width / (window.devicePixelRatio || 1)) + "px";
-      const ctx = canvas.getContext("2d");
-      viewer.appendChild(canvas);
-      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+// ---- Render with PDF.js ----
+async function renderPdf(bytes){
+  if (!window.pdfjsLib){ setStatus("PDF viewer failed to load.", "err"); return; }
+  viewer.innerHTML = "";
+  const doc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+  pageInfo.textContent = doc.numPages + (doc.numPages === 1 ? " page" : " pages");
+  const targetWidth = Math.min(viewer.clientWidth - 36, 900);
+  const dpr = window.devicePixelRatio || 1;
+  for (let n=1; n<=doc.numPages; n++){
+    const page = await doc.getPage(n);
+    const base = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: (targetWidth / base.width) * dpr });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
+    canvas.style.width = Math.floor(vp.width / dpr) + "px";
+    canvas.setAttribute("role","img"); canvas.setAttribute("aria-label","Page " + n);
+    viewer.appendChild(canvas);
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+  }
+}
+
+// ---- Download ----
+downloadBtn.addEventListener("click", () => {
+  if (!lastPdf) return;
+  const name = (mainFile || "document").replace(/.*\//, "").replace(/\.tex$/i, "") + ".pdf";
+  const url = URL.createObjectURL(new Blob([lastPdf], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+});
+
+document.querySelector('[role="radiogroup"]').addEventListener("change", () => {
+  if (mainFile) setStatus("Engine set to " + (currentEngineKind()==="xetex"?"XeLaTeX":"pdfLaTeX") + ". Click Compile.", "");
+});
+
+// ---- Live folder sync (File System Access API; Chrome/Edge) ----
+const openFolderBtn=$("openFolderBtn"), vscodeBtn=$("vscodeBtn"), autoCompileEl=$("autoCompile"), liveStatus=$("liveStatus"), liveUnsupported=$("liveUnsupported");
+const FS_OK = typeof window.showDirectoryPicker === "function";
+const ALLOW_RE = /\.(tex|bib|cls|sty|ltx|def|clo|bbl|txt|tikz|sub|cfg|fd|enc|map|png|jpe?g|gif|pdf|eps|svg)$/i;
+
+vscodeBtn.addEventListener("click", () => window.open("https://vscode.dev/", "_blank", "noopener"));
+if (!FS_OK){ openFolderBtn.disabled = true; liveUnsupported.hidden = false; }
+else { openFolderBtn.addEventListener("click", pickFolder); }
+
+function stopWatching(){ if (watchTimer){ clearInterval(watchTimer); watchTimer = null; } dirHandle = null; lastSig = ""; }
+async function walkDir(handle, prefix, out){
+  for await (const [name, entry] of handle.entries()){
+    if (name.startsWith(".")) continue;
+    const path = prefix ? prefix + "/" + name : name;
+    if (entry.kind === "directory") await walkDir(entry, path, out);
+    else out.push({ path, entry });
+  }
+}
+async function listFolder(){ const all = []; await walkDir(dirHandle, "", all); return all.filter(e => ALLOW_RE.test(e.path)); }
+async function folderSignature(entries){
+  let sig = "";
+  for (const {path, entry} of entries){ const f = await entry.getFile(); sig += path + ":" + f.size + ":" + f.lastModified + ";"; }
+  return sig;
+}
+async function loadFolderIntoProject(entries){
+  const next = [];
+  for (const {path, entry} of entries){
+    const f = await entry.getFile();
+    if (f.size > 25*1024*1024) continue;
+    next.push({ path, bytes: new Uint8Array(await f.arrayBuffer()), isText: TEXT_RE.test(path) });
+  }
+  projectFiles = next; refreshFileUI();
+}
+async function pickFolder(){
+  let handle;
+  try { handle = await window.showDirectoryPicker(); }
+  catch(e){ return; } // user cancelled
+  dirHandle = handle;
+  const entries = await listFolder();
+  if (!entries.length){ liveStatus.textContent = "No .tex files found in that folder."; dirHandle = null; return; }
+  lastSig = await folderSignature(entries);
+  await loadFolderIntoProject(entries);
+  liveStatus.textContent = "Watching this folder. Edit and save in VS Code to rebuild.";
+  if (watchTimer) clearInterval(watchTimer);
+  watchTimer = setInterval(pollFolder, 1500);
+  if (mainFile && autoCompileEl.checked) compile();
+}
+async function pollFolder(){
+  if (!dirHandle || compiling) return;
+  try {
+    const entries = await listFolder();
+    const sig = await folderSignature(entries);
+    if (sig !== lastSig){
+      lastSig = sig;
+      await loadFolderIntoProject(entries);
+      if (mainFile && autoCompileEl.checked) compile();
     }
+  } catch(e){
+    stopWatching();
+    liveStatus.textContent = "Stopped watching (folder access ended).";
   }
+}
 
-  // ---- Download ----
-  downloadBtn.addEventListener("click", () => {
-    if (!lastPdf) return;
-    const name = (mainFile || "document").replace(/.*\//, "").replace(/\.tex$/i, "") + ".pdf";
-    const blob = new Blob([lastPdf], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-  });
-
-  // Re-render on engine change is not needed; user re-compiles. But update status hint.
-  document.getElementById("engineSeg").addEventListener("change", () => {
-    if (mainFile) setStatus("Engine set to " + (currentEngineKind() === "xetex" ? "XeTeX" : "pdfTeX") + ". Click Compile.", "");
-  });
-})();
+setStatus("Idle. Add a .tex file to begin.", "");
 </script>
 </body>
 </html>

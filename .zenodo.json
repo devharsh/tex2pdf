@@ -1,0 +1,22 @@
+{
+  "title": "tex2pdf: TeX Viewer Online",
+  "description": "A static, in-browser LaTeX to PDF viewer. It compiles LaTeX entirely client side using a WebAssembly build of TeX Live (busytex) and renders the result with PDF.js. No server, no install, and nothing is uploaded.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "AGPL-3.0-or-later",
+  "creators": [
+    {
+      "name": "Trivedi, Devharsh",
+      "orcid": "0000-0001-6374-7249"
+    }
+  ],
+  "keywords": [
+    "latex",
+    "pdf",
+    "webassembly",
+    "tex-live",
+    "busytex",
+    "in-browser",
+    "pdf.js"
+  ]
+}

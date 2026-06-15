@@ -48,9 +48,9 @@
 </head>
 <body>
 <nav class="topnav">
-  <a class="brand" href="index.html">TeX Viewer Online</a>
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
   <div class="links">
-    <a href="index.html">TeX to PDF</a>
+    <a href="../index.html">TeX to PDF</a>
     <a href="beautify.html" class="active" aria-current="page">Beautify</a>
     <a href="diff.html">Compare</a>
     <a href="cyberchef.html">CyberChef</a>
@@ -87,6 +87,7 @@
     <button class="btn" id="run">Beautify and highlight</button>
     <button class="btn secondary" id="copy">Copy output</button>
     <button class="btn secondary" id="download">Download</button>
+    <button class="btn secondary" id="clear">Clear</button>
   </div>
   <div class="status" id="status" role="status" aria-live="polite">Paste or load code, pick a language, then Beautify.</div>
 
@@ -154,13 +155,31 @@
 
   function mapHl(lang){ return ({bibtex:"latex",rtf:"plaintext"})[lang]||lang; }
 
+  function detectLang(code){
+    const t=code.trim();
+    if(t.startsWith("{")||t.startsWith("[")){ try{ JSON.parse(t); return "json"; }catch(_){} }
+    if(/^\s*@\w+\s*\{/.test(t)) return "bibtex";
+    if(/^\s*\{\\rtf/.test(t)) return "rtf";
+    if(/^\s*(<\?xml|<!doctype|<html|<svg|<[a-zA-Z][\w-]*[\s>\/])/i.test(t)) return "xml";
+    if(/\bimport\s+java\.|System\.(out|err)\.print|public\s+(final\s+|abstract\s+)?class\s+\w|public\s+static\s+void\s+main\s*\(\s*String/.test(code)) return "java";
+    if(/\busing\s+System\b|\bnamespace\s+\w|Console\.(WriteLine|Write|ReadLine)\b/.test(code)) return "csharp";
+    if(/#include\s*<[\w.\/]+>|\bstd::|\busing\s+namespace\s+std\b|\bcout\s*<<|\bcin\s*>>/.test(code)) return "cpp";
+    if(/^\s*def\s+\w+\s*\(.*\)\s*:|^\s*(from\s+[\w.]+\s+import|import\s+\w+)\s*$/m.test(code)) return "python";
+    try{
+      const a=window.hljs.highlightAuto(code,["javascript","json","css","xml","java","python","cpp","c","csharp","bash","sql","go","rust","php","ruby","ini","yaml","makefile"]);
+      let l=a.language||"plaintext";
+      if(l==="tex") l="bibtex";
+      return l;
+    }catch(_){ return "plaintext"; }
+  }
+
   $("run").addEventListener("click", async ()=>{
     const code=input.value; if(!code.trim()){ setStatus("Nothing to format.","err"); return; }
     let lang=langSel.value;
     try{
       setStatus("Loading highlighter...","");
       loadCss(HLJS_CSS); await loadScript(HLJS_JS);
-      if(lang==="auto"){ const a=window.hljs.highlightAuto(code); lang=a.language||"plaintext"; const m={tex:"bibtex"}; if(m[lang])lang=m[lang]; }
+      if(lang==="auto"){ lang=detectLang(code); const opt=langSel.querySelector('option[value="'+lang+'"]'); if(opt) langSel.value=lang; }
       setStatus("Formatting...","");
       let formatted=code;
       try{ formatted=await beautify(code,lang); }
@@ -185,6 +204,11 @@
     const url=URL.createObjectURL(new Blob([t],{type:"text/plain"}));
     const a=document.createElement("a"); a.href=url; a.download="formatted.txt"; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),3000);
+  });
+  $("clear").addEventListener("click", ()=>{
+    input.value=""; output.innerHTML=""; output.dataset.raw=""; $("file").value="";
+    langSel.value="auto"; setStatus("Cleared. Paste or load code, then Beautify.","");
+    input.focus();
   });
 })();
 </script>

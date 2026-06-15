@@ -44,9 +44,9 @@
 </head>
 <body>
 <nav class="topnav">
-  <a class="brand" href="index.html">TeX Viewer Online</a>
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
   <div class="links">
-    <a href="index.html">TeX to PDF</a>
+    <a href="../index.html">TeX to PDF</a>
     <a href="beautify.html">Beautify</a>
     <a href="diff.html" class="active" aria-current="page">Compare</a>
     <a href="cyberchef.html">CyberChef</a>
@@ -77,6 +77,8 @@
     <label class="chk"><input type="checkbox" id="sidebyside" checked> Side by side</label>
     <label class="chk"><input type="checkbox" id="ignorews"> Ignore whitespace</label>
     <button class="btn secondary" id="swap">Swap sides</button>
+    <button class="btn secondary" id="download">Download diff</button>
+    <button class="btn secondary" id="clear">Clear</button>
   </div>
   <div class="status" id="status" role="status" aria-live="polite">Load or paste content on both sides, then Compare.</div>
 
@@ -122,6 +124,7 @@
   $("fileB").addEventListener("change",e=>{ const f=e.target.files[0]; if(f) handleFile(f,textB,"B"); });
   $("swap").addEventListener("click",()=>{ const t=textA.value; textA.value=textB.value; textB.value=t; const n=nameA; nameA=nameB; nameB=n; });
 
+  let lastPatch="";
   $("run").addEventListener("click", async ()=>{
     let a=textA.value, b=textB.value;
     if(!a && !b){ setStatus("Both sides are empty.","err"); return; }
@@ -130,11 +133,24 @@
       setStatus("Comparing...","");
       loadCss(D2H_CSS); await loadScript(DIFF); await loadScript(D2H_JS);
       const patch=window.Diff.createTwoFilesPatch(nameA,nameB,a,b,"","",{context:3});
+      lastPatch=patch;
       const ui=new window.Diff2HtmlUI(result, patch, {drawFileList:false, matching:"lines", outputFormat:$("sidebyside").checked?"side-by-side":"line-by-line", colorScheme:"dark"});
       ui.draw();
       const changed=/^[+-]/m.test(a===b?"":patch.split("\n").slice(5).join("\n"));
       setStatus(a===b?"The two sides are identical.":"Comparison ready.", a===b?"ok":"ok");
     }catch(err){ setStatus("Error: "+err.message,"err"); }
+  });
+
+  $("download").addEventListener("click", ()=>{
+    if(!lastPatch){ setStatus("Run a comparison first.","err"); return; }
+    const url=URL.createObjectURL(new Blob([lastPatch],{type:"text/plain"}));
+    const a=document.createElement("a"); a.href=url; a.download="differences.diff"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+  });
+  $("clear").addEventListener("click", ()=>{
+    textA.value=""; textB.value=""; result.innerHTML=""; lastPatch="";
+    $("fileA").value=""; $("fileB").value=""; nameA="left"; nameB="right";
+    setStatus("Cleared. Load or paste content on both sides, then Compare.","");
   });
 })();
 </script>

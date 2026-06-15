@@ -8,16 +8,16 @@ Compile LaTeX and view it as a PDF, entirely in your browser. No account, no ins
 
 Live website: https://devharsh.github.io/tex2pdf/
 
-![Screenshot of TeX Viewer Online: engine selector (XeLaTeX, pdfLaTeX), a file drop zone, live edit with VS Code controls, and the PDF preview pane](live.demo.png)
+![Screenshot of TeX Viewer Online: engine selector (XeLaTeX, pdfLaTeX), a file drop zone, live edit with VS Code controls, and the PDF preview pane](screenshots/tex2pdf.png)
 
 ## In-browser tools
 
 Alongside the TeX viewer, the site bundles small client-side utilities. Each lives on its own page so its code loads only when you open it, keeping memory and first paint low. Everything runs in your browser; nothing is uploaded.
 
 - TeX to PDF (`index.html`): the main viewer.
-- Beautify and highlight (`beautify.html`): re-indent JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, with syntax highlighting for Python, C, C++, and C# as well.
-- Compare (`diff.html`): side-by-side diff of two snippets, files, or two PDFs (compared by their extracted text).
-- CyberChef (`cyberchef.html`): the bundled Cyber Swiss Army Knife, running locally with no server.
+- Beautify and highlight (`html/beautify.html`): re-indent JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, with syntax highlighting for Python, C, C++, and C# as well.
+- Compare (`html/diff.html`): side-by-side diff of two snippets, files, or two PDFs (compared by their extracted text).
+- CyberChef (`html/cyberchef.html`): the bundled Cyber Swiss Army Knife, running locally with no server.
 
 ## Why
 
@@ -103,21 +103,22 @@ The included `.nojekyll` keeps GitHub Pages from processing the site with Jekyll
 ## Project structure
 
 ```
-index.html                 The whole app UI (HTML, CSS, JS)
-404.html                   Custom not-found page
+index.html                 The TeX viewer UI (home page; at root for GitHub Pages)
+404.html                   Custom not-found page (at root for GitHub Pages)
+html/beautify.html         Beautify and highlight tool
+html/diff.html             Compare tool
+html/cyberchef.html        CyberChef wrapper
+screenshots/               Demo images used in this README
 sample.tex                 Example document for testing
 core/texlyre-busytex.js    The busytex runner (ES module)
-core/busytex/              Engine and TeX Live basic bundle
-  busytex.wasm             Combined TeX engine (about 32 MB)
-  busytex.js               Engine loader
-  busytex_pipeline.js      Compilation pipeline
-  busytex_worker.js        Web Worker entry
-  texlive-basic.data       TeX Live basic package set (about 91 MB)
-  texlive-basic.js         Data-package loader
-core/texmf/                Extra packages not in the basic set
+core/busytex/              Engine and TeX Live basic bundle (busytex.wasm, busytex.js, workers, texlive-basic.*)
+core/texmf/                Extra packages not in the basic set (booktabs, enumitem, url)
+cyberchef/                 Bundled CyberChef (index.html + assets + modules)
 .nojekyll                  Serve files as-is on GitHub Pages
 NOTICE.md                  Third-party licenses and credits
 ```
+
+The home page (`index.html`) and `404.html` stay at the repo root because GitHub Pages serves those from the root; the other tool pages live in `html/`.
 
 ## Limitations
 

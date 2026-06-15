@@ -31,9 +31,9 @@
 </head>
 <body>
 <nav class="topnav">
-  <a class="brand" href="index.html">TeX Viewer Online</a>
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
   <div class="links">
-    <a href="index.html">TeX to PDF</a>
+    <a href="../index.html">TeX to PDF</a>
     <a href="beautify.html">Beautify</a>
     <a href="diff.html">Compare</a>
     <a href="cyberchef.html" class="active" aria-current="page">CyberChef</a>
@@ -41,7 +41,7 @@
 </nav>
 <div class="bar">
   <span>CyberChef (the Cyber Swiss Army Knife) bundled and running locally. Nothing is uploaded.</span>
-  <span><a href="cyberchef/index.html" target="_blank" rel="noopener">Open in a full tab</a></span>
+  <span><a href="../cyberchef/index.html" target="_blank" rel="noopener">Open in a full tab</a></span>
 </div>
 
 <div class="open" id="opener">
@@ -61,7 +61,7 @@
       var op=document.getElementById("opener"); if(op) op.remove();
       var wrap=document.getElementById("frameWrap"); wrap.hidden=false;
       var f=document.createElement("iframe");
-      f.title="CyberChef"; f.src="cyberchef/index.html";
+      f.title="CyberChef"; f.src="../cyberchef/index.html";
       f.allow="clipboard-read; clipboard-write";
       f.onload=function(){ var l=document.getElementById("loading"); if(l) l.remove(); };
       wrap.appendChild(f);

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare files - TeX Viewer Online tools</title>
+<meta name="description" content="Compare two files or two PDFs side by side in your browser. No server, nothing uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<style>
+  :root{ --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d; --text:#e6edf3; --muted:#9aa3af; --accent:#1f6feb; --accent2:#58a6ff; --ok:#3fb950; --err:#f85149; --radius:10px; color-scheme:dark; }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
+  a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+  :focus-visible{outline:3px solid var(--accent2);outline-offset:2px;border-radius:6px}
+  .topnav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+  .topnav .brand{font-weight:700;color:var(--text)}
+  .topnav .links{display:flex;gap:6px;flex-wrap:wrap}
+  .topnav .links a{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:14px}
+  .topnav .links a:hover{background:rgba(255,255,255,.05);text-decoration:none;color:var(--text)}
+  .topnav .links a.active{background:rgba(31,111,235,.16);color:var(--text);font-weight:650}
+  main{flex:1;padding:18px 20px;max-width:1280px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:0}
+  h1{font-size:20px;margin:0;font-weight:650}
+  .sub{color:var(--muted);font-size:13px;margin:0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:820px){ .grid{grid-template-columns:1fr} }
+  .pane{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .pane h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0}
+  textarea{width:100%;min-height:240px;resize:vertical;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+  input[type=file]{font:inherit;color:var(--muted);font-size:13px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:650;cursor:pointer;min-height:42px}
+  .btn:hover{background:#2c7cf0}
+  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+  label.chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+  .status{font-size:13px;color:var(--muted);min-height:18px}
+  .status.err{color:var(--err)} .status.ok{color:var(--ok)}
+  #result{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:auto;max-height:75vh}
+  #result:empty{display:none}
+  .empty{color:var(--muted);font-size:13px}
+  footer{border-top:1px solid var(--border);padding:10px 20px;font-size:12px;color:var(--muted);text-align:center}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="brand" href="index.html">TeX Viewer Online</a>
+  <div class="links">
+    <a href="index.html">TeX to PDF</a>
+    <a href="beautify.html">Beautify</a>
+    <a href="diff.html" class="active" aria-current="page">Compare</a>
+    <a href="cyberchef.html">CyberChef</a>
+  </div>
+</nav>
+
+<main>
+  <div>
+    <h1>Compare files</h1>
+    <p class="sub">Diff two snippets, two text files, or two PDFs (compared by their extracted text). Nothing is uploaded.</p>
+  </div>
+
+  <div class="grid">
+    <div class="pane">
+      <h2>Left (original)</h2>
+      <input type="file" id="fileA" accept=".txt,.tex,.bib,.json,.js,.css,.html,.xml,.java,.py,.c,.cpp,.cs,.md,.csv,.pdf">
+      <textarea id="textA" spellcheck="false" placeholder="Paste original text, or load a file or PDF above."></textarea>
+    </div>
+    <div class="pane">
+      <h2>Right (changed)</h2>
+      <input type="file" id="fileB" accept=".txt,.tex,.bib,.json,.js,.css,.html,.xml,.java,.py,.c,.cpp,.cs,.md,.csv,.pdf">
+      <textarea id="textB" spellcheck="false" placeholder="Paste changed text, or load a file or PDF above."></textarea>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="run">Compare</button>
+    <label class="chk"><input type="checkbox" id="sidebyside" checked> Side by side</label>
+    <label class="chk"><input type="checkbox" id="ignorews"> Ignore whitespace</label>
+    <button class="btn secondary" id="swap">Swap sides</button>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite">Load or paste content on both sides, then Compare.</div>
+
+  <div id="result"></div>
+</main>
+
+<footer>Runs fully client side. PDFs are compared by extracted text. No tracking, no uploads.</footer>
+
+<script>
+(function(){
+  "use strict";
+  const $ = (id)=>document.getElementById(id);
+  const textA=$("textA"), textB=$("textB"), statusEl=$("status"), result=$("result");
+  const PDFJS="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js";
+  const PDFW="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  const DIFF="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js";
+  const D2H_CSS="https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/css/diff2html.min.css";
+  const D2H_JS="https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/js/diff2html-ui.min.js";
+
+  const loaded={};
+  function loadScript(src){ if(loaded[src])return loaded[src]; loaded[src]=new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("Failed to load "+src));document.head.appendChild(s);}); return loaded[src]; }
+  function loadCss(href){ if(loaded[href])return; loaded[href]=true; const l=document.createElement("link"); l.rel="stylesheet"; l.href=href; document.head.appendChild(l); }
+  function setStatus(t,k){ statusEl.textContent=t; statusEl.className="status"+(k?" "+k:""); }
+
+  let nameA="left", nameB="right";
+  async function extractPdfText(bytes){
+    await loadScript(PDFJS);
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;
+    const doc=await window.pdfjsLib.getDocument({data:bytes}).promise;
+    let out=[];
+    for(let n=1;n<=doc.numPages;n++){ const page=await doc.getPage(n); const tc=await page.getTextContent(); out.push(tc.items.map(i=>i.str).join(" ")); }
+    return out.join("\n\n");
+  }
+  async function handleFile(file, ta, which){
+    if(/\.pdf$/i.test(file.name)){
+      setStatus("Extracting text from "+file.name+"...","");
+      try{ ta.value=await extractPdfText(new Uint8Array(await file.arrayBuffer())); setStatus("Loaded "+file.name+".",""); }
+      catch(err){ setStatus("Could not read PDF: "+err.message,"err"); }
+    } else { ta.value=await file.text(); setStatus("Loaded "+file.name+".",""); }
+    if(which==="A") nameA=file.name; else nameB=file.name;
+  }
+  $("fileA").addEventListener("change",e=>{ const f=e.target.files[0]; if(f) handleFile(f,textA,"A"); });
+  $("fileB").addEventListener("change",e=>{ const f=e.target.files[0]; if(f) handleFile(f,textB,"B"); });
+  $("swap").addEventListener("click",()=>{ const t=textA.value; textA.value=textB.value; textB.value=t; const n=nameA; nameA=nameB; nameB=n; });
+
+  $("run").addEventListener("click", async ()=>{
+    let a=textA.value, b=textB.value;
+    if(!a && !b){ setStatus("Both sides are empty.","err"); return; }
+    if($("ignorews").checked){ const f=s=>s.split("\n").map(l=>l.replace(/\s+/g," ").trim()).join("\n"); a=f(a); b=f(b); }
+    try{
+      setStatus("Comparing...","");
+      loadCss(D2H_CSS); await loadScript(DIFF); await loadScript(D2H_JS);
+      const patch=window.Diff.createTwoFilesPatch(nameA,nameB,a,b,"","",{context:3});
+      const ui=new window.Diff2HtmlUI(result, patch, {drawFileList:false, matching:"lines", outputFormat:$("sidebyside").checked?"side-by-side":"line-by-line", colorScheme:"dark"});
+      ui.draw();
+      const changed=/^[+-]/m.test(a===b?"":patch.split("\n").slice(5).join("\n"));
+      setStatus(a===b?"The two sides are identical.":"Comparison ready.", a===b?"ok":"ok");
+    }catch(err){ setStatus("Error: "+err.message,"err"); }
+  });
+})();
+</script>
+</body>
+</html>

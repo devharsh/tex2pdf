@@ -24,6 +24,12 @@
   :focus-visible{outline:3px solid var(--accent2); outline-offset:2px; border-radius:6px}
   .skip{position:absolute; left:-999px; top:0; background:var(--accent); color:#fff; padding:8px 12px; z-index:10}
   .skip:focus{left:8px; top:8px}
+  .topnav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+  .topnav .brand{font-weight:700;color:var(--text)}
+  .topnav .links{display:flex;gap:6px;flex-wrap:wrap}
+  .topnav .links a{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:14px;text-decoration:none}
+  .topnav .links a:hover{background:rgba(255,255,255,.05);color:var(--text)}
+  .topnav .links a.active{background:rgba(31,111,235,.16);color:var(--text);font-weight:650}
   header{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
   header h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
   header .sub{color:var(--muted); font-size:13px}
@@ -85,6 +91,15 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to preview</a>
+<nav class="topnav">
+  <a class="brand" href="index.html">TeX Viewer Online</a>
+  <div class="links">
+    <a href="index.html" class="active" aria-current="page">TeX to PDF</a>
+    <a href="beautify.html">Beautify</a>
+    <a href="diff.html">Compare</a>
+    <a href="cyberchef.html">CyberChef</a>
+  </div>
+</nav>
 <header>
   <h1>TeX Viewer Online <span class="pill">in-browser</span></h1>
   <span class="sub">View your TeX documents in any browser, no software needed. Compiles locally with WebAssembly; nothing is uploaded.</span>
@@ -92,8 +107,8 @@
 
 <div class="wrap">
   <aside class="side" aria-label="Controls">
-    <fieldset class="card seg-wrap">
-      <legend>1. Engine</legend>
+    <div class="card">
+      <p class="label">1. Engine</p>
       <div class="seg" role="radiogroup" aria-label="LaTeX engine">
         <label><input type="radio" name="engine" value="xetex" checked> XeLaTeX</label>
         <label><input type="radio" name="engine" value="pdftex"> pdfLaTeX</label>
@@ -108,7 +123,7 @@
           </table>
         </div>
       </details>
-    </fieldset>
+    </div>
 
     <div class="card">
       <p class="label" id="filesLabel">2. Files</p>

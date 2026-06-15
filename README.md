@@ -10,6 +10,15 @@ Live website: https://devharsh.github.io/tex2pdf/
 
 ![Screenshot of TeX Viewer Online: engine selector (XeLaTeX, pdfLaTeX), a file drop zone, live edit with VS Code controls, and the PDF preview pane](live.demo.png)
 
+## In-browser tools
+
+Alongside the TeX viewer, the site bundles small client-side utilities. Each lives on its own page so its code loads only when you open it, keeping memory and first paint low. Everything runs in your browser; nothing is uploaded.
+
+- TeX to PDF (`index.html`): the main viewer.
+- Beautify and highlight (`beautify.html`): re-indent JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, with syntax highlighting for Python, C, C++, and C# as well.
+- Compare (`diff.html`): side-by-side diff of two snippets, files, or two PDFs (compared by their extracted text).
+- CyberChef (`cyberchef.html`): the bundled Cyber Swiss Army Knife, running locally with no server.
+
 ## Why
 
 Most LaTeX setups need a local TeX install or a cloud service that uploads your files. tex2pdf does neither. A TeX engine (busytex) plus a TeX Live package set are shipped as static files and run client side, so compilation is private and self contained.

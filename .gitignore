@@ -1,0 +1,9 @@
+# Never commit user uploads or local build artifacts.
+# This app processes uploaded .tex files in memory only; nothing is written to disk.
+uploads/
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+.DS_Store

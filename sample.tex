@@ -1,0 +1,49 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{In-Browser LaTeX, Working End to End}
+\author{tex2pdf}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This document was compiled entirely in a web browser using a WebAssembly build of
+pdfTeX, then rendered to the page with PDF.js. No server performed the compilation,
+and the source file was never uploaded anywhere.
+
+\section{A little mathematics}
+The quadratic formula:
+\begin{equation}
+  x = \frac{-b \pm \sqrt{b^{2} - 4ac}}{2a}.
+\end{equation}
+
+Euler's identity, often called the most beautiful equation:
+\[
+  e^{i\pi} + 1 = 0.
+\]
+
+\section{A short list}
+\begin{itemize}
+  \item Pick an engine: pdfTeX or XeTeX.
+  \item Drop in a \texttt{.tex} file, several files, or a \texttt{.zip} project.
+  \item Compile, preview, and download the PDF.
+\end{itemize}
+
+\section{A small table}
+\begin{center}
+\begin{tabular}{l r}
+  \hline
+  Component & Role \\
+  \hline
+  SwiftLaTeX & LaTeX engine in WebAssembly \\
+  PDF.js & Renders the resulting PDF \\
+  JSZip & Reads multi-file zip projects \\
+  \hline
+\end{tabular}
+\end{center}
+
+\end{document}

@@ -14,10 +14,27 @@ Live website: https://devharsh.github.io/tex2pdf/
 
 Alongside the TeX viewer, the site bundles small client-side utilities. Each lives on its own page so its code loads only when you open it, keeping memory and first paint low. Everything runs in your browser; nothing is uploaded.
 
-- TeX to PDF (`index.html`): the main viewer.
-- Beautify and highlight (`html/beautify.html`): re-indent JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, with syntax highlighting for Python, C, C++, and C# as well.
-- Compare (`html/diff.html`): side-by-side diff of two snippets, files, or two PDFs (compared by their extracted text).
-- CyberChef (`html/cyberchef.html`): the bundled Cyber Swiss Army Knife, running locally with no server.
+### TeX to PDF (`index.html`)
+
+The flagship viewer (shown above). Upload a single `.tex`, several files, or a `.zip`, choose XeLaTeX or pdfLaTeX, and preview the PDF inline with a one-click download. Includes automatic main-file detection, an elapsed timer and progress bar, and live VS Code folder sync so the PDF rebuilds as you save.
+
+### Beautify and highlight (`html/beautify.html`)
+
+Re-indent and colour code entirely in the browser. It auto-detects the language and reformats JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, and adds syntax highlighting for Python, C, C++, and C# as well. Load a file or paste text, then copy, download, or clear the result.
+
+![Beautify and highlight tool: language selector, input on the left and highlighted, re-indented output on the right](screenshots/beautify.png)
+
+### Compare (`html/diff.html`)
+
+A side-by-side diff of two snippets, two text files, or two PDFs (compared by their extracted text). Toggle whitespace handling, swap sides, download the differences as a `.diff` file, or clear both sides.
+
+![Compare tool: two inputs above a side-by-side highlighted diff of the changes](screenshots/compare.png)
+
+### CyberChef (`html/cyberchef.html`)
+
+The bundled Cyber Swiss Army Knife (by GCHQ) for encoding, encryption, compression, data formats, and hundreds of other operations, running locally with no server. Its modules load on demand when you open the tool.
+
+![CyberChef running locally: operations list, recipe area, and input and output panels](screenshots/cyberchef.png)
 
 ## Why
 

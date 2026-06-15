@@ -124,4 +124,16 @@ All processing happens in your browser. The only network requests are loading th
 - Zip reading: [JSZip](https://github.com/Stuk/jszip), MIT.
 - Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.
 
-Because this project bundles busytex, the combined work is covered by the AGPL-3.0. Full details are in [NOTICE.md](NOTICE.md).
+## Author
+
+Devharsh Trivedi, PhD, CISSP. ORCID: https://orcid.org/0000-0001-6374-7249
+
+## Citation
+
+If you use this project, please cite it. Citation metadata is in [CITATION.cff](CITATION.cff). A plain-text form:
+
+> Trivedi, D. (2026). tex2pdf: TeX Viewer Online [Software]. https://github.com/devharsh/tex2pdf
+
+## License
+
+Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later); see [LICENSE](LICENSE). Because this project bundles busytex, which is AGPL-3.0, the combined work is covered by the AGPL-3.0. Third-party notices are in [NOTICE.md](NOTICE.md).

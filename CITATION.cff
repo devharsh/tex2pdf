@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "tex2pdf: TeX Viewer Online"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Trivedi
+    given-names: Devharsh
+    orcid: "https://orcid.org/0000-0001-6374-7249"
+abstract: >-
+  A static, in-browser LaTeX to PDF viewer. It compiles LaTeX entirely
+  client side using a WebAssembly build of TeX Live (busytex) and renders
+  the result with PDF.js. No server, no install, and nothing is uploaded.
+repository-code: "https://github.com/devharsh/tex2pdf"
+url: "https://devharsh.github.io/tex2pdf/"
+keywords:
+  - latex
+  - pdf
+  - webassembly
+  - tex-live
+  - busytex
+  - in-browser
+license: AGPL-3.0-or-later
+version: "1.0.0"
+date-released: "2026-06-15"

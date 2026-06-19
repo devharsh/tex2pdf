@@ -18,6 +18,10 @@ Alongside the TeX viewer, the site bundles small client-side utilities. Each liv
 
 The flagship viewer (shown above). Upload a single `.tex`, several files, or a `.zip`, choose XeLaTeX or pdfLaTeX, and preview the PDF inline with a one-click download. Includes automatic main-file detection, an elapsed timer and progress bar, and live VS Code folder sync so the PDF rebuilds as you save.
 
+### Markdown to PDF (`html/md2pdf.html`)
+
+Render a Markdown file and save it as a PDF, entirely in the browser. It handles GitHub-flavored Markdown (tables, task lists, strikethrough), highlights code, and renders math with KaTeX. Load or drag in a `.md` file, or paste text, then Save as PDF (through the print dialog), download the HTML, copy it, or clear. Its libraries load on demand and nothing is uploaded.
+
 ### Beautify and highlight (`html/beautify.html`)
 
 Re-indent and colour code entirely in the browser. It auto-detects the language and reformats JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, and adds syntax highlighting for Python, C, C++, and C# as well. Load a file or paste text, then copy, download, or clear the result.
@@ -122,6 +126,7 @@ The included `.nojekyll` keeps GitHub Pages from processing the site with Jekyll
 ```
 index.html                 The TeX viewer UI (home page; at root for GitHub Pages)
 404.html                   Custom not-found page (at root for GitHub Pages)
+html/md2pdf.html           Markdown to PDF tool
 html/beautify.html         Beautify and highlight tool
 html/diff.html             Compare tool
 html/cyberchef.html        CyberChef wrapper
@@ -146,13 +151,14 @@ The home page (`index.html`) and `404.html` stay at the repo root because GitHub
 
 ## Privacy
 
-All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and the PDF.js and JSZip libraries from a CDN. Your document content is never transmitted.
+All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and the helper libraries (PDF.js, JSZip, and, on the tool pages, marked, DOMPurify, highlight.js, and KaTeX) from a CDN. Your document content is never transmitted.
 
 ## Credits and licenses
 
 - TeX engine and WebAssembly build: [busytex](https://github.com/busytex/busytex) and the [TeXlyre busytex](https://github.com/TeXlyre/texlyre-busytex) distribution, under AGPL-3.0.
 - PDF rendering: [PDF.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache-2.0.
 - Zip reading: [JSZip](https://github.com/Stuk/jszip), MIT.
+- Markdown rendering: [marked](https://github.com/markedjs/marked) (MIT), [DOMPurify](https://github.com/cure53/DOMPurify) (Apache-2.0 or MPL-2.0), [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause), and [KaTeX](https://github.com/KaTeX/KaTeX) (MIT).
 - Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.
 
 ## Author

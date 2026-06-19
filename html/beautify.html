@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beautify and Highlight - TeX Viewer Online tools</title>
-<meta name="description" content="Format and syntax-highlight code in your browser: JSON, JS, CSS, HTML, XML, BibTeX, Java, Python, C, C++, C#. No server, nothing uploaded.">
+<meta name="description" content="Format and syntax-highlight code in your browser: JSON, JS, CSS, HTML, XML, BibTeX, Java, Python, C, C++, C#. Live VS Code folder editing. No server, nothing uploaded.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
 <style>
   :root{ --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d; --text:#e6edf3; --muted:#9aa3af; --accent:#1f6feb; --accent2:#58a6ff; --ok:#3fb950; --err:#f85149; --radius:10px; color-scheme:dark; }
@@ -25,12 +25,23 @@
   .sub{color:var(--muted);font-size:13px;margin:0}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   label.fld{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+  label.chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer}
   select,button,input[type=file]{font:inherit}
   select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px;min-height:42px}
   .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:650;cursor:pointer;min-height:42px}
   .btn:hover{background:#2c7cf0}
   .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
   .btn.secondary:hover{background:rgba(255,255,255,.05)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  /* live edit card (consistent with the main page) */
+  .card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .card .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row .btn{flex:1;min-width:150px}
+  .livefile{margin-top:10px;width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px;min-height:42px}
+  details.help{border:1px solid var(--border);border-radius:8px;background:transparent;margin-top:10px}
+  details.help summary{cursor:pointer;padding:8px 10px;font-size:13px;color:var(--accent2)}
+  details.help div{padding:0 10px 10px;font-size:13px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:0}
   @media (max-width:820px){ .grid{grid-template-columns:1fr} }
   .pane{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -90,7 +101,21 @@
     <button class="btn secondary" id="download">Download</button>
     <button class="btn secondary" id="clear">Clear</button>
   </div>
-  <div class="status" id="status" role="status" aria-live="polite">Paste or load code, pick a language, then Beautify.</div>
+
+  <div class="card">
+    <p class="label">Live edit with VS Code</p>
+    <div class="row">
+      <button class="btn secondary" id="openFolder" type="button">Open a folder</button>
+      <button class="btn secondary" id="openVscode" type="button">Open VS Code</button>
+    </div>
+    <select id="liveFile" class="livefile" aria-label="File to format" hidden></select>
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="autoRun" checked> Auto-format when a file is saved</label>
+    <p class="note" id="liveStatus" aria-live="polite" style="margin-top:8px"></p>
+    <p class="note" id="liveUnsupported" hidden>Live folder needs Chrome or Edge. You can still load a file above.</p>
+    <details class="help"><summary>How the live workflow works</summary><div><p style="margin:.4em 0">Click <strong>Open a folder</strong> and choose the folder with your code. Open the <em>same</em> folder in VS Code (use Open VS Code, then File, Open Folder in vscode.dev). Edit and save; this page re-formats the file automatically.</p></div></details>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite">Paste or load code, open a folder, pick a language, then Beautify.</div>
 
   <div class="grid">
     <div class="pane">
@@ -174,7 +199,7 @@
     }catch(_){ return "plaintext"; }
   }
 
-  $("run").addEventListener("click", async ()=>{
+  async function runBeautify(){
     const code=input.value; if(!code.trim()){ setStatus("Nothing to format.","err"); return; }
     let lang=langSel.value;
     try{
@@ -185,7 +210,6 @@
       let formatted=code;
       try{ formatted=await beautify(code,lang); }
       catch(err){ setStatus(err.message,"err"); formatted=code; }
-      // highlight
       const hlLang=mapHl(lang);
       let html;
       try{ html=window.hljs.getLanguage(hlLang)? window.hljs.highlight(formatted,{language:hlLang}).value : window.hljs.highlightAuto(formatted).value; }
@@ -194,7 +218,8 @@
       output.dataset.raw=formatted;
       if(!statusEl.classList.contains("err")) setStatus("Done ("+lang+").","ok");
     }catch(err){ setStatus("Error: "+err.message,"err"); }
-  });
+  }
+  $("run").addEventListener("click", runBeautify);
 
   $("copy").addEventListener("click", async ()=>{
     const t=output.dataset.raw||output.textContent; if(!t) return;
@@ -207,10 +232,66 @@
     setTimeout(()=>URL.revokeObjectURL(url),3000);
   });
   $("clear").addEventListener("click", ()=>{
+    stopWatching();
     input.value=""; output.innerHTML=""; output.dataset.raw=""; $("file").value="";
     langSel.value="auto"; setStatus("Cleared. Paste or load code, then Beautify.","");
     input.focus();
   });
+
+  // ---- Live edit with VS Code (File System Access API; Chrome/Edge) ----
+  const LIVE_RE=/\.(txt|rtf|bib|json|js|mjs|ts|css|html|htm|xml|java|py|c|h|cpp|cc|hpp|cs)$/i;
+  let dirHandle=null, watchTimer=null, lastSig="", activeFile="";
+  const FS_OK=typeof window.showDirectoryPicker==="function";
+  $("openVscode").addEventListener("click", ()=>window.open("https://vscode.dev/","_blank","noopener"));
+  if(!FS_OK){ $("openFolder").disabled=true; $("liveUnsupported").hidden=false; }
+  else { $("openFolder").addEventListener("click", pickFolder); }
+
+  function stopWatching(){ if(watchTimer){ clearInterval(watchTimer); watchTimer=null; } dirHandle=null; lastSig=""; activeFile=""; const s=$("liveFile"); if(s){ s.hidden=true; s.innerHTML=""; } if($("liveStatus")) $("liveStatus").textContent=""; }
+  async function walkDir(handle, prefix, outArr){
+    for await (const [name, entry] of handle.entries()){
+      if(name.startsWith(".")) continue;
+      const path=prefix ? prefix+"/"+name : name;
+      if(entry.kind==="directory") await walkDir(entry, path, outArr);
+      else outArr.push({path, entry});
+    }
+  }
+  async function listFiles(){ const all=[]; await walkDir(dirHandle,"",all); return all.filter(e=>LIVE_RE.test(e.path)); }
+  async function signature(entries){ let s=""; for(const {path,entry} of entries){ const f=await entry.getFile(); s+=path+":"+f.size+":"+f.lastModified+";"; } return s; }
+  function fillSelect(entries){
+    const sel=$("liveFile"); sel.innerHTML="";
+    entries.forEach(e=>{ const o=document.createElement("option"); o.value=e.path; o.textContent=e.path; sel.appendChild(o); });
+    sel.hidden=entries.length<2;
+    if(!entries.some(e=>e.path===activeFile)) activeFile=entries.length?entries[0].path:"";
+    sel.value=activeFile;
+  }
+  async function loadActive(entries, run){
+    const hit=entries.find(e=>e.path===activeFile); if(!hit) return;
+    const f=await hit.entry.getFile();
+    input.value=await f.text();
+    const ext=(hit.path.split(".").pop()||"").toLowerCase();
+    if(EXT[ext]) langSel.value=EXT[ext];
+    if(run) await runBeautify();
+  }
+  async function pickFolder(){
+    let h; try{ h=await window.showDirectoryPicker(); }catch(e){ return; }
+    dirHandle=h;
+    const entries=await listFiles();
+    if(!entries.length){ $("liveStatus").textContent="No supported files found in that folder."; dirHandle=null; return; }
+    activeFile=""; fillSelect(entries); lastSig=await signature(entries);
+    await loadActive(entries, true);
+    $("liveStatus").textContent="Watching this folder. Edit and save in VS Code to re-format.";
+    if(watchTimer) clearInterval(watchTimer);
+    watchTimer=setInterval(pollFolder,1500);
+  }
+  $("liveFile").addEventListener("change", async ()=>{ activeFile=$("liveFile").value; if(dirHandle){ const e=await listFiles(); await loadActive(e, true); } });
+  async function pollFolder(){
+    if(!dirHandle) return;
+    try{
+      const entries=await listFiles();
+      const sig=await signature(entries);
+      if(sig!==lastSig){ lastSig=sig; fillSelect(entries); if($("autoRun").checked) await loadActive(entries, true); }
+    }catch(e){ if(watchTimer){clearInterval(watchTimer);watchTimer=null;} dirHandle=null; $("liveStatus").textContent="Stopped watching (folder access ended)."; }
+  }
 })();
 </script>
 </body>

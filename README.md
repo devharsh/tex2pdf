@@ -38,9 +38,9 @@ A side-by-side diff of two snippets, two text files, or two PDFs (compared by th
 
 Compare two images side by side, even across formats (PNG, JPG, SVG, WebP, GIF, BMP, and the first page of a PDF). For each image it reads metadata that is hard to judge by eye, dimensions, file size, megapixels, aspect ratio, colour and channels, transparency, bit depth, and DPI (from the PNG or JPEG headers), and highlights the rows that differ between the two. It also computes two similarity scores, a pixel match (RMSE, resized to a common size, so different sizes and formats can be compared) and a perceptual match (difference hash), and renders a red difference map. Everything runs locally; nothing is uploaded.
 
-![Image Compare with a PNG and a PDF side by side: previews on a transparency checkerboard, metadata tables with the differing rows highlighted, similarity scores, and a red difference map](screenshots/png image compare.png.png)
+![Image Compare with a PNG and a PDF side by side: previews on a transparency checkerboard, metadata tables with the differing rows highlighted, similarity scores, and a red difference map](screenshots/png image compare.png)
 
-![Image Compare with two PDFs side by side: previews, metadata tables, the pixel and perceptual similarity scores, and the difference map](screenshots/pdf image compare.png.png)
+![Image Compare with two PDFs side by side: previews, metadata tables, the pixel and perceptual similarity scores, and the difference map](screenshots/pdf image compare.png)
 
 ### CyberChef (`html/cyberchef.html`)
 

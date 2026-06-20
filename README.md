@@ -20,11 +20,11 @@ The flagship viewer (shown above). Upload a single `.tex`, several files, or a `
 
 ### Markdown to PDF (`html/md2pdf.html`)
 
-Render a Markdown file and save it as a PDF, entirely in the browser. It handles GitHub-flavored Markdown (tables, task lists, strikethrough), highlights code, and renders math with KaTeX. Load or drag in a `.md` file, or paste text, then Save as PDF (through the print dialog), download the HTML, copy it, or clear. Its libraries load on demand and nothing is uploaded.
+Render a Markdown file and save it as a PDF, entirely in the browser. It handles GitHub-flavored Markdown (tables, task lists, strikethrough), highlights code, and renders math with KaTeX. Load or drag in a `.md` file, or paste text, then Save as PDF (through the print dialog), download the HTML, copy it, or clear. It also supports live VS Code folder editing, and its libraries load on demand.
 
 ### Beautify and highlight (`html/beautify.html`)
 
-Re-indent and colour code entirely in the browser. It auto-detects the language and reformats JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, and adds syntax highlighting for Python, C, C++, and C# as well. Load a file or paste text, then copy, download, or clear the result.
+Re-indent and colour code entirely in the browser. It auto-detects the language and reformats JSON, JavaScript, CSS, HTML/XML, BibTeX, and Java, and adds syntax highlighting for Python, C, C++, and C# as well. Load a file or paste text, then copy, download, or clear the result. It also supports live VS Code folder editing.
 
 ![Beautify and highlight tool: language selector, input on the left and highlighted, re-indented output on the right](screenshots/beautify.png)
 
@@ -33,6 +33,14 @@ Re-indent and colour code entirely in the browser. It auto-detects the language 
 A side-by-side diff of two snippets, two text files, or two PDFs (compared by their extracted text). Toggle whitespace handling, swap sides, download the differences as a `.diff` file, or clear both sides.
 
 ![Compare tool: two inputs above a side-by-side highlighted diff of the changes](screenshots/compare.png)
+
+### Image Compare (`html/imgcompare.html`)
+
+Compare two images side by side, even across formats (PNG, JPG, SVG, WebP, GIF, BMP, and the first page of a PDF). For each image it reads metadata that is hard to judge by eye, dimensions, file size, megapixels, aspect ratio, colour and channels, transparency, bit depth, and DPI (from the PNG or JPEG headers), and highlights the rows that differ between the two. It also computes two similarity scores, a pixel match (RMSE, resized to a common size, so different sizes and formats can be compared) and a perceptual match (difference hash), and renders a red difference map. Everything runs locally; nothing is uploaded.
+
+![Image Compare with a PNG and a PDF side by side: previews on a transparency checkerboard, metadata tables with the differing rows highlighted, similarity scores, and a red difference map](screenshots/imgcompare-png-pdf.png)
+
+![Image Compare with two PDFs side by side: previews, metadata tables, the pixel and perceptual similarity scores, and the difference map](screenshots/imgcompare-pdf-pdf.png)
 
 ### CyberChef (`html/cyberchef.html`)
 
@@ -73,13 +81,13 @@ The first compile loads the engine and TeX Live (about 125 MB). Your browser cac
 
 ## Live editing with VS Code
 
-You can keep your usual editor and have the PDF rebuild as you save, with no upload:
+You can keep your usual editor and have the output rebuild as you save, with no upload:
 
 1. Click **Open a folder** and choose your project folder (grant read access once).
 2. Click **Open VS Code**, then in vscode.dev choose File, Open Folder, and pick the same folder.
-3. Edit and save in VS Code. This tool watches the folder and recompiles automatically on each save (toggle with "Auto-compile when a file is saved").
+3. Edit and save in VS Code. The tool watches the folder and rebuilds automatically on each save (toggle with the auto-run checkbox).
 
-This uses the browser File System Access API and works in Chrome and Edge. In other browsers the button is disabled and you can still upload files manually.
+This uses the browser File System Access API and works in Chrome and Edge. In other browsers the button is disabled and you can still upload files manually. The TeX to PDF, Markdown to PDF, and Beautify pages all support this workflow.
 
 ## How it works
 
@@ -129,6 +137,7 @@ index.html                 The TeX viewer UI (home page; at root for GitHub Page
 html/md2pdf.html           Markdown to PDF tool
 html/beautify.html         Beautify and highlight tool
 html/diff.html             Compare tool
+html/imgcompare.html       Image Compare tool
 html/cyberchef.html        CyberChef wrapper
 screenshots/               Demo images used in this README
 sample.tex                 Example document for testing
@@ -151,7 +160,7 @@ The home page (`index.html`) and `404.html` stay at the repo root because GitHub
 
 ## Privacy
 
-All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and the helper libraries (PDF.js, JSZip, and, on the tool pages, marked, DOMPurify, highlight.js, and KaTeX) from a CDN. Your document content is never transmitted.
+All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and helper libraries from a CDN (PDF.js and JSZip for the TeX viewer, and on the tool pages marked, DOMPurify, highlight.js, and KaTeX). Image Compare analyses pixels with the built-in canvas. Your document content is never transmitted.
 
 ## Credits and licenses
 

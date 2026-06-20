@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Compare - TeX Viewer Online tools</title>
+<meta name="description" content="Compare two images side by side in your browser, across formats (PNG, JPG, SVG, WebP, GIF, BMP, PDF). See dimensions, size, DPI, channels, transparency, bit depth, and a similarity score. Nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<style>
+  :root{ --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d; --text:#e6edf3; --muted:#9aa3af; --accent:#1f6feb; --accent2:#58a6ff; --ok:#3fb950; --err:#f85149; --warn:#d29922; --radius:10px; color-scheme:dark; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;display:flex;flex-direction:column;min-height:100%}
+  a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+  :focus-visible{outline:3px solid var(--accent2);outline-offset:2px;border-radius:6px}
+  .skip{position:absolute;left:-999px;top:0;background:var(--accent);color:#fff;padding:8px 12px;z-index:10}
+  .skip:focus{left:8px;top:8px}
+  .topnav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+  .topnav .brand{font-weight:700;color:var(--text)}
+  .topnav .links{display:flex;gap:6px;flex-wrap:wrap}
+  .topnav .links a{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:14px}
+  .topnav .links a:hover{background:rgba(255,255,255,.05);text-decoration:none;color:var(--text)}
+  .topnav .links a.active{background:rgba(31,111,235,.16);color:var(--text);font-weight:650}
+  header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.2px}
+  header .sub{color:var(--muted);font-size:13px}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border:1px solid var(--border);border-radius:999px;color:var(--muted)}
+  .wrap{flex:1;display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:0}
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr} body{height:auto} }
+  .side{border-right:1px solid var(--border);padding:18px;overflow:auto;display:flex;flex-direction:column;gap:16px;background:var(--panel)}
+  @media (max-width:900px){ .side{border-right:0;border-bottom:1px solid var(--border)} }
+  .main{padding:18px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 8px}
+  .drop{border:2px dashed var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;color:var(--muted);width:100%;background:transparent}
+  .drop:hover,.drop.drag{border-color:var(--accent);background:rgba(31,111,235,.08);color:var(--text)}
+  .drop strong{color:var(--text)}
+  button{font:inherit}
+  .btn{width:100%;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px 14px;font-weight:650;cursor:pointer;transition:background .15s;min-height:44px}
+  .btn:hover{background:#2c7cf0}
+  .btn:disabled{background:#21262d;color:var(--muted);cursor:not-allowed}
+  .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .row{display:flex;gap:8px}
+  .row .btn{flex:1}
+  label.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;padding:3px 0}
+  label.chk input{width:16px;height:16px}
+  .note{font-size:12px;color:var(--muted)}
+  .status{font-size:13px;color:var(--muted);min-height:18px}
+  .status.err{color:var(--err)} .status.ok{color:var(--ok)}
+  .panes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:760px){ .panes{grid-template-columns:1fr} }
+  .pane h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 6px}
+  .imgbox{border:1px solid var(--border);border-radius:var(--radius);min-height:220px;display:flex;align-items:center;justify-content:center;overflow:auto;
+    background-color:#2b2f36;background-image:linear-gradient(45deg,#3a3f47 25%,transparent 25%),linear-gradient(-45deg,#3a3f47 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3f47 75%),linear-gradient(-45deg,transparent 75%,#3a3f47 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+  .imgbox img,.imgbox canvas{max-width:100%;height:auto;display:block}
+  .imgbox .ph{color:var(--muted);font-size:13px;padding:24px}
+  table.meta{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  table.meta th,table.meta td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+  table.meta th{color:var(--muted);font-weight:600;white-space:nowrap;width:42%}
+  table.meta td{color:var(--text);word-break:break-word}
+  table.meta tr.diffrow td,table.meta tr.diffrow th{background:rgba(210,153,34,.12)}
+  .scorebar{height:10px;background:#21262d;border-radius:999px;overflow:hidden;margin:6px 0 2px}
+  .scorefill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px}
+  .scores{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:600px){ .scores{grid-template-columns:1fr} }
+  .bignum{font-size:26px;font-weight:700}
+  footer{border-top:1px solid var(--border);padding:10px 20px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to comparison</a>
+<nav class="topnav">
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
+  <div class="links">
+    <a href="../index.html">TeX to PDF</a>
+    <a href="md2pdf.html">MD to PDF</a>
+    <a href="beautify.html">Beautify</a>
+    <a href="diff.html">Compare</a>
+    <a href="imgcompare.html" class="active" aria-current="page">Image Compare</a>
+    <a href="cyberchef.html">CyberChef</a>
+  </div>
+</nav>
+<header>
+  <h1>Image Compare <span class="pill">in-browser</span></h1>
+  <span class="sub">Compare two images side by side, across formats, with metadata and a similarity score. Nothing is uploaded.</span>
+</header>
+
+<div class="wrap">
+  <aside class="side" aria-label="Controls">
+    <div class="card">
+      <p class="label">Image A</p>
+      <button type="button" class="drop" id="dropA">
+        <strong>Drop image A</strong> or click to choose<br>
+        <span class="note">PNG, JPG, SVG, WebP, GIF, BMP, PDF</span>
+      </button>
+      <input type="file" id="fileA" accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.pdf,image/*,application/pdf" hidden>
+    </div>
+    <div class="card">
+      <p class="label">Image B</p>
+      <button type="button" class="drop" id="dropB">
+        <strong>Drop image B</strong> or click to choose<br>
+        <span class="note">PNG, JPG, SVG, WebP, GIF, BMP, PDF</span>
+      </button>
+      <input type="file" id="fileB" accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.pdf,image/*,application/pdf" hidden>
+    </div>
+
+    <button class="btn" id="run" disabled>Compute similarity</button>
+    <label class="chk"><input type="checkbox" id="showDiff" checked> Show difference map</label>
+    <button class="btn secondary" id="clear">Clear</button>
+
+    <div class="status" id="status" role="status" aria-live="polite">Load image A and image B to compare.</div>
+    <p class="note">DPI and bit depth are read from the file when present (PNG, JPEG). Similarity resizes both images to a common size, so different dimensions and formats can be compared.</p>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="panes">
+      <div class="pane">
+        <h2>Image A</h2>
+        <div class="imgbox" id="imgA"><span class="ph">Image A preview</span></div>
+        <table class="meta" id="metaA"></table>
+      </div>
+      <div class="pane">
+        <h2>Image B</h2>
+        <div class="imgbox" id="imgB"><span class="ph">Image B preview</span></div>
+        <table class="meta" id="metaB"></table>
+      </div>
+    </div>
+
+    <div class="card" id="results" hidden>
+      <p class="label">Similarity</p>
+      <div class="scores">
+        <div>
+          <div class="bignum" id="simPixel">-</div>
+          <div class="scorebar"><div class="scorefill" id="barPixel" style="width:0%"></div></div>
+          <p class="note">Pixel match (RMSE over RGB, resized to a common size). Sensitive to exact pixel values.</p>
+        </div>
+        <div>
+          <div class="bignum" id="simHash">-</div>
+          <div class="scorebar"><div class="scorefill" id="barHash" style="width:0%"></div></div>
+          <p class="note">Perceptual match (difference hash). Robust to scaling and minor edits; reflects overall look.</p>
+        </div>
+      </div>
+      <div id="diffWrap" style="margin-top:14px">
+        <p class="label">Difference map</p>
+        <div class="imgbox" id="diffBox" style="min-height:160px"></div>
+        <p class="note">Brighter red marks larger per-pixel differences (both images scaled to a common size).</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <span>Runs fully client side. Images are analysed in your browser with canvas and PDF.js.</span>
+  <span>No tracking. No file uploads to any server.</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var statusEl=$("status");
+  var PDFJS="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js";
+  var PDFW="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  var loaded={};
+  function loadScript(s){ if(loaded[s])return loaded[s]; loaded[s]=new Promise(function(res,rej){var el=document.createElement("script");el.src=s;el.onload=res;el.onerror=function(){rej(new Error("Failed to load "+s));};document.head.appendChild(el);}); return loaded[s]; }
+  function setStatus(t,k){ statusEl.textContent=t; statusEl.className="status"+(k?" "+k:""); }
+  function fmtSize(n){ if(n<1024) return n+" B"; if(n<1048576) return (n/1024).toFixed(1)+" KB"; return (n/1048576).toFixed(2)+" MB"; }
+  function gcd(a,b){ return b?gcd(b,a%b):a; }
+  function aspect(w,h){ if(!w||!h) return "-"; var g=gcd(w,h); var rw=w/g, rh=h/g; var ratio=(w/h).toFixed(3); if(rw<=40&&rh<=40) return rw+":"+rh+" ("+ratio+")"; return ratio; }
+
+  var slots={A:null,B:null}; // {file, canvas, width, height, fileMeta, pixel, isPdf, ptW, ptH}
+
+  // ---- read header bytes for format, bit depth, color type, DPI ----
+  async function readFileMeta(file){
+    var buf=new Uint8Array(await file.arrayBuffer());
+    var dv=new DataView(buf.buffer);
+    var m={format:"",bitDepth:null,colorType:null,dpi:null};
+    if(buf[0]===0x89&&buf[1]===0x50&&buf[2]===0x4E&&buf[3]===0x47){
+      m.format="PNG"; m.bitDepth=buf[24];
+      m.colorType=({0:"Grayscale",2:"RGB",3:"Indexed (palette)",4:"Grayscale + alpha",6:"RGBA"})[buf[25]]||("type "+buf[25]);
+      for(var i=8;i<buf.length-12;){
+        var len=dv.getUint32(i);
+        var type=String.fromCharCode(buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
+        if(type==="pHYs"){ var ppuX=dv.getUint32(i+8); var unit=buf[i+16]; if(unit===1) m.dpi=Math.round(ppuX*0.0254); break; }
+        if(type==="IDAT"||type==="IEND") break;
+        i+=12+len;
+      }
+    } else if(buf[0]===0xFF&&buf[1]===0xD8){
+      m.format="JPEG";
+      var j=2;
+      while(j<buf.length-4){
+        if(buf[j]!==0xFF){ j++; continue; }
+        var marker=buf[j+1];
+        if(marker===0xD8||marker===0xD9){ j+=2; continue; }
+        var seg=dv.getUint16(j+2);
+        if(marker===0xE0 && buf[j+4]===0x4A&&buf[j+5]===0x46&&buf[j+6]===0x49&&buf[j+7]===0x46){
+          var units=buf[j+11]; var xd=dv.getUint16(j+13);
+          if(units===1) m.dpi=xd; else if(units===2) m.dpi=Math.round(xd*2.54);
+        }
+        if(marker>=0xC0&&marker<=0xC3){ m.bitDepth=buf[j+4]; }
+        if(marker===0xDA) break;
+        j+=2+seg;
+      }
+    } else if(buf[0]===0x47&&buf[1]===0x49&&buf[2]===0x46){ m.format="GIF";
+    } else if(buf[0]===0x42&&buf[1]===0x4D){ m.format="BMP";
+    } else if(buf[0]===0x52&&buf[1]===0x49&&buf[2]===0x46&&buf[8]===0x57&&buf[9]===0x45&&buf[10]===0x42&&buf[11]===0x50){ m.format="WebP";
+    } else if(buf[0]===0x25&&buf[1]===0x50&&buf[2]===0x44&&buf[3]===0x46){ m.format="PDF";
+    } else {
+      var head=new TextDecoder().decode(buf.slice(0,Math.min(buf.length,1000)));
+      if(/<svg[\s>]/i.test(head)) m.format="SVG";
+    }
+    return m;
+  }
+
+  // ---- load to a canvas (raster, SVG, or PDF first page) ----
+  async function loadToCanvas(file){
+    if(file.type==="application/pdf" || /\.pdf$/i.test(file.name)){
+      await loadScript(PDFJS);
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;
+      var doc=await window.pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+      var page=await doc.getPage(1);
+      var base=page.getViewport({scale:1});
+      var scale=Math.min(3, Math.max(1, 1000/base.width));
+      var vp=page.getViewport({scale:scale});
+      var c=document.createElement("canvas"); c.width=Math.floor(vp.width); c.height=Math.floor(vp.height);
+      await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+      return {canvas:c,width:c.width,height:c.height,isPdf:true,ptW:Math.round(base.width),ptH:Math.round(base.height)};
+    }
+    var url=URL.createObjectURL(file);
+    try{
+      var img=new Image();
+      await new Promise(function(res,rej){ img.onload=res; img.onerror=function(){rej(new Error("Could not decode image"));}; img.src=url; });
+      var w=img.naturalWidth||img.width||300, h=img.naturalHeight||img.height||150;
+      var c2=document.createElement("canvas"); c2.width=w; c2.height=h;
+      c2.getContext("2d").drawImage(img,0,0,w,h);
+      return {canvas:c2,width:w,height:h};
+    } finally { setTimeout(function(){URL.revokeObjectURL(url);},2000); }
+  }
+
+  function pixelInfo(canvas){
+    try{
+      var d=canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height).data;
+      var hasAlpha=false, gray=true;
+      var px=canvas.width*canvas.height; var step=Math.max(1,Math.floor(px/150000));
+      for(var i=0;i<d.length;i+=4*step){
+        if(d[i+3]<255) hasAlpha=true;
+        if(d[i]!==d[i+1]||d[i+1]!==d[i+2]) gray=false;
+        if(hasAlpha&&!gray) break;
+      }
+      var color=(gray?"Grayscale":"RGB")+(hasAlpha?" + alpha":"");
+      return {hasAlpha:hasAlpha,gray:gray,color:color,channels:(gray?1:3)+(hasAlpha?1:0)};
+    }catch(e){ return {color:"n/a",channels:"n/a",hasAlpha:null}; }
+  }
+
+  function renderMeta(slot, otherSlot, tableEl){
+    var s=slot; if(!s){ tableEl.innerHTML=""; return; }
+    var rows=[
+      ["File name", s.file.name],
+      ["Format", s.fileMeta.format || (s.file.type||"unknown")],
+      ["File size", fmtSize(s.file.size)],
+      ["Dimensions", s.width+" x "+s.height+" px"+(s.isPdf?" (rendered)":"")],
+      ["Megapixels", ((s.width*s.height)/1e6).toFixed(2)+" MP"],
+      ["Aspect ratio", aspect(s.width,s.height)],
+      ["Color", s.pixel.color + (s.fileMeta.colorType?(" ("+s.fileMeta.colorType+")"):"")],
+      ["Channels", String(s.pixel.channels)],
+      ["Transparency", s.pixel.hasAlpha===null?"n/a":(s.pixel.hasAlpha?"Yes":"No")],
+      ["Bit depth", s.fileMeta.bitDepth?(s.fileMeta.bitDepth+" bits/channel"):"n/a"],
+      ["DPI", s.fileMeta.dpi?(s.fileMeta.dpi+" dpi"):(s.isPdf?(s.ptW+" x "+s.ptH+" pt"):"n/a (not in file)")]
+    ];
+    var html="";
+    for(var r=0;r<rows.length;r++){
+      var diff = otherSlot && rows[r][0]!=="File name" && rows[r][0]!=="File size" && differs(rows[r][0], slot, otherSlot);
+      html+='<tr'+(diff?' class="diffrow"':'')+'><th>'+rows[r][0]+'</th><td>'+escapeHtml(String(rows[r][1]))+'</td></tr>';
+    }
+    tableEl.innerHTML=html;
+  }
+  function metric(label, s){
+    switch(label){
+      case "Format": return s.fileMeta.format||s.file.type;
+      case "Dimensions": return s.width+"x"+s.height;
+      case "Megapixels": return ((s.width*s.height)/1e6).toFixed(2);
+      case "Aspect ratio": return (s.width/s.height).toFixed(3);
+      case "Color": return s.pixel.color;
+      case "Channels": return String(s.pixel.channels);
+      case "Transparency": return String(s.pixel.hasAlpha);
+      case "Bit depth": return String(s.fileMeta.bitDepth);
+      case "DPI": return String(s.fileMeta.dpi);
+    }
+    return "";
+  }
+  function differs(label,a,b){ return metric(label,a)!==metric(label,b); }
+  function escapeHtml(t){ return t.replace(/[&<>]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]);}); }
+
+  function showPreview(boxEl, slot){
+    boxEl.innerHTML="";
+    if(!slot){ boxEl.innerHTML='<span class="ph">preview</span>'; return; }
+    var c=slot.canvas; var disp=document.createElement("canvas");
+    var maxW=520; var sc=Math.min(1, maxW/c.width);
+    disp.width=Math.max(1,Math.round(c.width*sc)); disp.height=Math.max(1,Math.round(c.height*sc));
+    disp.getContext("2d").drawImage(c,0,0,disp.width,disp.height);
+    boxEl.appendChild(disp);
+  }
+
+  async function loadSlot(which, file){
+    if(!file) return;
+    setStatus("Reading image "+which+"...","");
+    try{
+      var fm=await readFileMeta(file);
+      var img=await loadToCanvas(file);
+      var slot={file:file,canvas:img.canvas,width:img.width,height:img.height,isPdf:!!img.isPdf,ptW:img.ptW,ptH:img.ptH,fileMeta:fm};
+      slot.pixel=pixelInfo(slot.canvas);
+      slots[which]=slot;
+      showPreview(which==="A"?$("imgA"):$("imgB"), slot);
+      renderMeta(slots.A, slots.B, $("metaA"));
+      renderMeta(slots.B, slots.A, $("metaB"));
+      setStatus("Loaded image "+which+".","ok");
+      $("run").disabled = !(slots.A && slots.B);
+      if(slots.A && slots.B) compute();
+    }catch(err){ setStatus("Image "+which+": "+err.message,"err"); }
+  }
+
+  // ---- similarity ----
+  function resizeData(canvas,w,h){ var c=document.createElement("canvas"); c.width=w;c.height=h; var ctx=c.getContext("2d"); ctx.drawImage(canvas,0,0,w,h); return ctx.getImageData(0,0,w,h); }
+  function rmsePercent(a,b){ var sum=0,n=0; for(var i=0;i<a.length;i+=4){ for(var k=0;k<3;k++){ var d=a[i+k]-b[i+k]; sum+=d*d; n++; } } var rmse=Math.sqrt(sum/n); return Math.max(0,(1-rmse/255)*100); }
+  function dHashBits(canvas){ var w=9,h=8; var d=resizeData(canvas,w,h).data; function g(x,y){ var i=(y*w+x)*4; return 0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]; } var bits=[]; for(var y=0;y<h;y++) for(var x=0;x<w-1;x++) bits.push(g(x,y)>g(x+1,y)?1:0); return bits; }
+  function hamming(a,b){ var d=0; for(var i=0;i<a.length;i++) if(a[i]!==b[i]) d++; return d; }
+  function makeDiff(aData,bData,w,h){ var c=document.createElement("canvas"); c.width=w;c.height=h; var ctx=c.getContext("2d"); var out=ctx.createImageData(w,h); var a=aData.data,b=bData.data,o=out.data; for(var i=0;i<a.length;i+=4){ var v=Math.min(255,Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2])); o[i]=v; o[i+1]=Math.floor(v*0.25); o[i+2]=Math.floor(v*0.25); o[i+3]=255; } ctx.putImageData(out,0,0); return c; }
+
+  function compute(){
+    if(!(slots.A&&slots.B)) return;
+    setStatus("Computing similarity...","");
+    try{
+      var N=256;
+      var ad=resizeData(slots.A.canvas,N,N), bd=resizeData(slots.B.canvas,N,N);
+      var pix=rmsePercent(ad.data,bd.data);
+      var ha=dHashBits(slots.A.canvas), hb=dHashBits(slots.B.canvas);
+      var perc=(64-hamming(ha,hb))/64*100;
+      $("simPixel").textContent=pix.toFixed(1)+"%"; $("barPixel").style.width=pix.toFixed(1)+"%";
+      $("simHash").textContent=perc.toFixed(1)+"%"; $("barHash").style.width=perc.toFixed(1)+"%";
+      var dw=$("diffWrap");
+      if($("showDiff").checked){ dw.style.display=""; var box=$("diffBox"); box.innerHTML=""; box.appendChild(makeDiff(ad,bd,N,N)); }
+      else dw.style.display="none";
+      $("results").hidden=false;
+      setStatus("Done. Pixel "+pix.toFixed(1)+"%, perceptual "+perc.toFixed(1)+"%.","ok");
+    }catch(err){ setStatus("Could not compute similarity: "+err.message,"err"); }
+  }
+
+  // ---- wiring ----
+  function wireDrop(dropId, fileId, which){
+    var drop=$(dropId);
+    drop.addEventListener("click",function(){ $(fileId).click(); });
+    drop.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $(fileId).click(); } });
+    ["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add("drag"); }); });
+    ["dragleave","drop"].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove("drag"); }); });
+    drop.addEventListener("drop",function(e){ if(e.dataTransfer&&e.dataTransfer.files[0]) loadSlot(which,e.dataTransfer.files[0]); });
+    $(fileId).addEventListener("change",function(e){ loadSlot(which,e.target.files[0]); e.target.value=""; });
+  }
+  wireDrop("dropA","fileA","A");
+  wireDrop("dropB","fileB","B");
+  $("run").addEventListener("click",compute);
+  $("showDiff").addEventListener("change",function(){ if(slots.A&&slots.B) compute(); });
+  $("clear").addEventListener("click",function(){
+    slots.A=null; slots.B=null; $("fileA").value=""; $("fileB").value="";
+    $("imgA").innerHTML='<span class="ph">Image A preview</span>'; $("imgB").innerHTML='<span class="ph">Image B preview</span>';
+    $("metaA").innerHTML=""; $("metaB").innerHTML=""; $("results").hidden=true; $("run").disabled=true;
+    setStatus("Cleared. Load image A and image B to compare.","");
+  });
+})();
+</script>
+</body>
+</html>

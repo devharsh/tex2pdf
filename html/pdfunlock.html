@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Unlock for Editing - TeX Viewer Online tools</title>
+<meta name="description" content="Unlock PDFs for editing in your browser. Removes the AcroForm AppendOnly SigFlags, certification (DocMDP) Perms, signature and read-only locks with pdf-lib, and strips password or permission encryption with qpdf (WebAssembly). No server, nothing uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d;
+    --text:#e6edf3; --muted:#9aa3af; --accent:#1f6feb; --accent2:#58a6ff;
+    --ok:#3fb950; --err:#f85149; --warn:#d29922; --radius:10px; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5;
+    display:flex; flex-direction:column; min-height:100%;
+  }
+  a{color:var(--accent2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:3px solid var(--accent2); outline-offset:2px; border-radius:6px}
+  .skip{position:absolute; left:-999px; top:0; background:var(--accent); color:#fff; padding:8px 12px; z-index:10}
+  .skip:focus{left:8px; top:8px}
+  .topnav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+  .topnav .brand{font-weight:700;color:var(--text)}
+  .topnav .links{display:flex;gap:6px;flex-wrap:wrap}
+  .topnav .links a{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:14px;text-decoration:none}
+  .topnav .links a:hover{background:rgba(255,255,255,.05);color:var(--text)}
+  .topnav .links a.active{background:rgba(31,111,235,.16);color:var(--text);font-weight:650}
+  header{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+  header h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
+  header .sub{color:var(--muted); font-size:13px}
+  .pill{display:inline-block; font-size:11px; padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
+  .wrap{flex:1; display:grid; grid-template-columns:minmax(320px,380px) 1fr; min-height:0}
+  @media (max-width:860px){ .wrap{grid-template-columns:1fr} body{height:auto} #viewer{min-height:55vh} }
+  .side{border-right:1px solid var(--border); padding:18px; overflow:auto; display:flex; flex-direction:column; gap:16px; background:var(--panel)}
+  @media (max-width:860px){ .side{border-right:0; border-bottom:1px solid var(--border)} }
+  .main{padding:18px; overflow:auto; display:flex; flex-direction:column; gap:14px; min-height:0}
+  .card{background:var(--panel2); border:1px solid var(--border); border-radius:var(--radius); padding:14px}
+  .label{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); padding:0; margin:0 0 8px}
+  .drop{border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; color:var(--muted); width:100%; background:transparent}
+  .drop:hover,.drop.drag{border-color:var(--accent); background:rgba(31,111,235,.08); color:var(--text)}
+  .drop strong{color:var(--text)}
+  select,button,input{font:inherit}
+  input[type=password]{width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; min-height:44px}
+  .btn{width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:12px 14px; font-weight:650; cursor:pointer; transition:background .15s; min-height:44px}
+  .btn:hover{background:#2c7cf0}
+  .btn:disabled{background:#21262d; color:var(--muted); cursor:not-allowed}
+  .btn.secondary{background:transparent; border:1px solid var(--border); color:var(--text)}
+  .btn.secondary:hover{background:rgba(255,255,255,.05)}
+  .row{display:flex; gap:8px}
+  ul.files{list-style:none; margin:10px 0 0; padding:0; font-size:13px; max-height:160px; overflow:auto}
+  ul.files li{display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid var(--border)}
+  ul.files li:last-child{border-bottom:0}
+  ul.files .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .status{display:flex; align-items:center; gap:10px; font-size:14px}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--muted); flex:none}
+  .dot.busy{background:var(--warn)} .dot.ok{background:var(--ok)} .dot.err{background:var(--err)}
+  .progress[hidden]{display:none}
+  .progress{display:flex; flex-direction:column; gap:6px}
+  .ptrack{height:8px; background:#21262d; border-radius:999px; overflow:hidden}
+  .pfill{height:100%; width:40%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:999px}
+  .progress.indeterminate .pfill{animation:slide 1.1s infinite ease-in-out}
+  @keyframes slide{0%{margin-left:-40%}100%{margin-left:100%}}
+  .note{font-size:12px; color:var(--muted)}
+  details.help{border:1px solid var(--border); border-radius:8px; background:transparent}
+  details.help summary{cursor:pointer; padding:8px 10px; font-size:13px; color:var(--accent2)}
+  details.help div{padding:0 10px 10px; font-size:13px; color:var(--muted)}
+  #viewer{flex:1; overflow:auto; border:1px solid var(--border); border-radius:var(--radius); background:#525659; padding:18px; min-height:240px}
+  #viewer canvas{display:block; margin:0 auto 16px; box-shadow:0 2px 12px rgba(0,0,0,.5); max-width:100%; height:auto; background:#fff}
+  #viewer .empty{color:#e6e9ec; text-align:center; margin-top:60px; font-size:14px}
+  .report{display:flex; flex-direction:column; gap:6px; font-size:13px}
+  .report .ln{display:flex; gap:10px; align-items:flex-start}
+  .report .k{color:var(--muted); min-width:160px}
+  .report .v{color:var(--text)}
+  .report .v.on{color:var(--ok)} .report .v.off{color:var(--muted)} .report .v.warn{color:var(--warn)}
+  details.log{border:1px solid var(--border); border-radius:8px; background:var(--panel2)}
+  details.log summary{cursor:pointer; padding:8px 12px; font-size:13px; color:var(--muted)}
+  footer{border-top:1px solid var(--border); padding:10px 20px; font-size:12px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to preview</a>
+<nav class="topnav">
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
+  <div class="links">
+    <a href="../index.html">TeX to PDF</a>
+    <a href="md2pdf.html">MD to PDF</a>
+    <a href="beautify.html">Beautify</a>
+    <a href="diff.html">Compare</a>
+    <a href="cyberchef.html">CyberChef</a>
+    <a href="pdfunlock.html" class="active" aria-current="page">PDF Unlock</a>
+  </div>
+</nav>
+<header>
+  <h1>PDF Unlock for Editing <span class="pill">in-browser</span></h1>
+  <span class="sub">Strip the AppendOnly signature flag, certification lock, and read-only flags, and remove password or permission encryption, then rebuild a clean editable copy. Runs locally; nothing is uploaded.</span>
+</header>
+
+<div class="wrap">
+  <aside class="side" aria-label="Controls">
+    <div class="card">
+      <p class="label" id="filesLabel">1. PDF</p>
+      <button type="button" class="drop" id="drop" aria-describedby="dropHint">
+        <strong>Drop a PDF here</strong> or click to choose<br>
+        <span class="note" id="dropHint">A single .pdf file. It never leaves your browser.</span>
+      </button>
+      <input type="file" id="fileInput" accept=".pdf,application/pdf" aria-labelledby="filesLabel" hidden>
+      <ul class="files" id="fileList" aria-live="polite"></ul>
+    </div>
+
+    <div class="card" id="pwCard" style="display:none">
+      <label class="label" for="pw">Open password</label>
+      <input type="password" id="pw" placeholder="Enter the PDF password" autocomplete="off">
+      <p class="note" style="margin:8px 0 0">This PDF is encrypted with an open password. Enter it, then click Unlock again. The password stays in your browser.</p>
+    </div>
+
+    <div class="card">
+      <p class="label">Live unlock with VS Code</p>
+      <div class="row">
+        <button class="btn secondary" id="openFolderBtn" type="button" style="flex:1">Open a folder</button>
+        <button class="btn secondary" id="vscodeBtn" type="button" style="flex:1">Open VS Code</button>
+      </div>
+      <label class="note" style="display:flex; align-items:center; gap:7px; margin-top:10px; cursor:pointer">
+        <input type="checkbox" id="autoUnlock" checked style="width:16px;height:16px"> Auto-unlock new or changed PDFs in the folder
+      </label>
+      <p class="note" id="liveStatus" style="margin-top:8px" aria-live="polite"></p>
+      <p class="note" id="liveUnsupported" hidden>Live folder needs Chrome or Edge. You can still choose a file above.</p>
+      <details class="help" style="margin-top:10px">
+        <summary>How the live workflow works</summary>
+        <div>
+          <p style="margin:.4em 0">Click <strong>Open a folder</strong> and pick your project folder (grant read and write). Open the <em>same</em> folder in VS Code with the Open VS Code button (File, Open Folder in vscode.dev).</p>
+          <p style="margin:.4em 0">Drop or save a locked PDF into that folder. This tool watches it and writes a <code>&lt;name&gt;-unlocked.pdf</code> next to each one, automatically. Files already ending in <code>-unlocked.pdf</code>, and ones that need a password, are skipped.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="unlockBtn" disabled>Unlock for editing</button>
+      <button class="btn secondary" id="resetBtn" title="Clear everything" style="width:auto;padding-left:16px;padding-right:16px">Reset</button>
+    </div>
+
+    <div class="progress indeterminate" id="progress" hidden aria-hidden="true">
+      <div class="ptrack"><div class="pfill"></div></div>
+    </div>
+
+    <div class="status" role="status" aria-live="polite" id="status">
+      <span class="dot" id="dot" aria-hidden="true"></span>
+      <span id="statusText">Idle. Add a PDF to begin.</span>
+    </div>
+
+    <p class="note">Fully client side. Two engines load only when needed: <strong>pdf-lib</strong> removes the document-level edit locks browsers honour (AcroForm <code>SigFlags</code> AppendOnly, certification <code>Perms</code>/DocMDP, signature and read-only flags); <strong>qpdf</strong> (WebAssembly) removes password and permission encryption.</p>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="row" style="align-items:center; justify-content:space-between">
+      <div class="status">
+        <strong style="font-weight:650">Preview</strong>
+        <span class="note" id="pageInfo"></span>
+      </div>
+      <button class="btn" id="downloadBtn" disabled style="width:auto; padding-left:18px; padding-right:18px">Download unlocked PDF</button>
+    </div>
+
+    <div class="card" id="reportCard" style="display:none">
+      <p class="label">What was found and changed</p>
+      <div class="report" id="report"></div>
+    </div>
+
+    <div id="viewer" tabindex="0" aria-label="PDF preview"><div class="empty">The unlocked PDF will appear here.</div></div>
+    <details class="log" id="logBox" hidden>
+      <summary>Details</summary>
+      <pre class="note" id="log" style="margin:0;padding:12px;white-space:pre-wrap"></pre>
+    </details>
+  </main>
+</div>
+
+<footer>
+  <span>Runs fully client side. Powered by pdf-lib and qpdf-wasm, previewed with PDF.js. No tracking, no uploads.</span>
+  <span>Engines load only when you unlock a file.</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  const PDFLIB_URL = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+  const QPDF_JS    = "https://cdn.jsdelivr.net/npm/@jspawn/qpdf-wasm@0.0.2/qpdf.js";
+  const QPDF_WASM  = "https://cdn.jsdelivr.net/npm/@jspawn/qpdf-wasm@0.0.2/qpdf.wasm";
+
+  const $ = (id)=>document.getElementById(id);
+  const drop=$("drop"), fileInput=$("fileInput"), fileListEl=$("fileList");
+  const unlockBtn=$("unlockBtn"), resetBtn=$("resetBtn"), downloadBtn=$("downloadBtn");
+  const dot=$("dot"), statusText=$("statusText"), viewer=$("viewer"), pageInfo=$("pageInfo");
+  const progress=$("progress"), reportCard=$("reportCard"), reportEl=$("report");
+  const logBox=$("logBox"), logEl=$("log"), pwCard=$("pwCard"), pwInput=$("pw");
+
+  let srcBytes=null, srcName=null, lastPdf=null;
+  let dirHandle=null, watchTimer=null, lastSig="", busy=false;
+
+  function setStatus(t,k){ statusText.textContent=t; dot.className="dot"+(k?" "+k:""); }
+  function showProgress(){ progress.hidden=false; progress.setAttribute("aria-hidden","false"); }
+  function hideProgress(){ progress.hidden=true; progress.setAttribute("aria-hidden","true"); }
+
+  // ---- lazy loaders ----
+  const scriptCache={};
+  function loadScript(src){
+    if(scriptCache[src]) return scriptCache[src];
+    scriptCache[src]=new Promise((res,rej)=>{
+      const s=document.createElement("script"); s.src=src;
+      s.onload=()=>res(); s.onerror=()=>rej(new Error("Could not load "+src+" (offline?)"));
+      document.head.appendChild(s);
+    });
+    return scriptCache[src];
+  }
+  async function loadPdfLib(){
+    if(window.PDFLib) return window.PDFLib;
+    await loadScript(PDFLIB_URL);
+    if(!window.PDFLib) throw new Error("pdf-lib failed to initialise");
+    return window.PDFLib;
+  }
+  let qpdfFactory=null;
+  async function loadQpdf(){
+    if(qpdfFactory) return qpdfFactory;
+    await loadScript(QPDF_JS);              // classic script -> global factory
+    const f = window.Module;
+    if(typeof f!=="function") throw new Error("qpdf engine failed to load");
+    try{ delete window.Module; }catch(_){}  // avoid global collisions
+    qpdfFactory=f; return f;
+  }
+
+  // ---- Stage 1: qpdf decrypt (password/permission encryption) ----
+  async function qpdfDecrypt(bytes, password){
+    const factory=await loadQpdf();
+    const errs=[];
+    const mod=await factory({
+      noInitialRun:true,
+      locateFile:(p)=> p.endsWith(".wasm") ? QPDF_WASM : p,
+      printErr:(t)=>errs.push(String(t)), print:()=>{}
+    });
+    mod.FS.writeFile("in.pdf", bytes);
+    const args=[]; if(password) args.push("--password="+password);
+    args.push("--decrypt","in.pdf","out.pdf");
+    let code; try{ code=mod.callMain(args); }catch(e){ code=(e&&typeof e.status==="number")?e.status:2; }
+    if(code===0 || code===3){                 // 0 ok, 3 warnings (output still written)
+      return new Uint8Array(mod.FS.readFile("out.pdf"));
+    }
+    const blob=errs.join(" ").toLowerCase();
+    if(blob.includes("password") || blob.includes("invalid")){
+      const err=new Error(password ? "Wrong password for this PDF." : "PASSWORD_REQUIRED");
+      err.password=true; throw err;
+    }
+    throw new Error("qpdf could not process this PDF"+(errs.length?": "+errs[0]:"."));
+  }
+
+  // ---- Stage 2: pdf-lib strip edit locks (verified: SigFlags / Perms / Sig fields / read-only) ----
+  async function stripLocks(bytes){
+    const PL=await loadPdfLib();
+    const { PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFBool }=PL;
+    const rep={ sigFlags:null, perms:false, sigFields:0, roCleared:0, annots:0, pages:0 };
+    const doc=await PDFDocument.load(bytes,{updateMetadata:false});
+    const cat=doc.catalog;
+    const acro=cat.lookupMaybe(PDFName.of("AcroForm"), PDFDict);
+    if(acro){
+      const sf=acro.lookupMaybe(PDFName.of("SigFlags"), PDFNumber);
+      if(sf){ rep.sigFlags=sf.asNumber(); acro.delete(PDFName.of("SigFlags")); }
+      const fields=acro.lookupMaybe(PDFName.of("Fields"), PDFArray);
+      if(fields){
+        for(let i=fields.size()-1;i>=0;i--){
+          const f=fields.lookup(i, PDFDict); if(!f) continue;
+          const ft=f.get(PDFName.of("FT"));
+          if(ft && ft.toString()==="/Sig"){
+            f.delete(PDFName.of("V")); f.delete(PDFName.of("Lock"));
+            fields.remove(i); rep.sigFields++;
+          } else {
+            const ff=f.lookupMaybe(PDFName.of("Ff"), PDFNumber);
+            if(ff && (ff.asNumber()&1)){ f.set(PDFName.of("Ff"), PDFNumber.of(ff.asNumber()&~1)); rep.roCleared++; }
+          }
+        }
+        if(fields.size()>0 && PDFBool) acro.set(PDFName.of("NeedAppearances"), PDFBool.True);
+      }
+    }
+    if(cat.has(PDFName.of("Perms"))){ cat.delete(PDFName.of("Perms")); rep.perms=true; }
+    const pages=doc.getPages(); rep.pages=pages.length;
+    for(const page of pages){
+      const annots=page.node.lookupMaybe(PDFName.of("Annots"), PDFArray);
+      if(!annots) continue;
+      for(let i=annots.size()-1;i>=0;i--){
+        const a=annots.lookup(i, PDFDict); if(!a) continue;
+        const ft=a.get(PDFName.of("FT")); const sub=a.get(PDFName.of("Subtype"));
+        if(ft && ft.toString()==="/Sig" && sub && sub.toString()==="/Widget"){ annots.remove(i); rep.annots++; }
+      }
+    }
+    const out=await doc.save({ useObjectStreams:false });   // full rewrite breaks AppendOnly chain
+    return { out, rep };
+  }
+
+  // ---- pipeline: decrypt if needed, then strip ----
+  async function unlockBytes(bytes, password){
+    const PL=await loadPdfLib();
+    let working=bytes, decrypted=false;
+    try{
+      await PL.PDFDocument.load(bytes,{updateMetadata:false});   // throws if encrypted
+    }catch(e){
+      working=await qpdfDecrypt(bytes, password);                // Stage 1
+      decrypted=true;
+    }
+    const { out, rep }=await stripLocks(working);                // Stage 2
+    rep.decrypted=decrypted;
+    return { out, rep };
+  }
+
+  // ---- file intake ----
+  function openPicker(){ fileInput.click(); }
+  drop.addEventListener("click", openPicker);
+  drop.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openPicker(); }});
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("drag");}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("drag");}));
+  drop.addEventListener("drop", e=>{ const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) takeFile(f); });
+  fileInput.addEventListener("change", ()=>{ const f=fileInput.files&&fileInput.files[0]; if(f) takeFile(f); fileInput.value=""; });
+
+  async function takeFile(f){
+    if(!/\.pdf$/i.test(f.name) && f.type!=="application/pdf"){ setStatus("That is not a PDF.","err"); return; }
+    srcBytes=new Uint8Array(await f.arrayBuffer()); srcName=f.name;
+    fileListEl.innerHTML="";
+    const li=document.createElement("li");
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=f.name+" ("+(srcBytes.length/1024).toFixed(0)+" KB)"; nm.title=f.name;
+    li.appendChild(nm); fileListEl.appendChild(li);
+    unlockBtn.disabled=false; downloadBtn.disabled=true; lastPdf=null;
+    reportCard.style.display="none"; logBox.hidden=true; pwCard.style.display="none"; pwInput.value="";
+    setStatus("Ready. Click Unlock for editing.","");
+  }
+
+  function renderReport(rep){
+    const rows=[];
+    const yn=(b,on,off)=>`<span class="v ${b?'on':'off'}">${b?on:off}</span>`;
+    rows.push(`<div class="ln"><span class="k">Pages</span><span class="v">${rep.pages}</span></div>`);
+    rows.push(`<div class="ln"><span class="k">Encryption</span>${
+      rep.decrypted ? `<span class="v on">password/permission lock removed</span>` : `<span class="v off">none</span>`}</div>`);
+    rows.push(`<div class="ln"><span class="k">AppendOnly SigFlags</span>${
+      rep.sigFlags!=null ? `<span class="v on">found (${rep.sigFlags}) and removed</span>` : `<span class="v off">none</span>`}</div>`);
+    rows.push(`<div class="ln"><span class="k">Certification (Perms)</span>${yn(rep.perms,"found and removed","none")}</div>`);
+    rows.push(`<div class="ln"><span class="k">Signature fields</span>${
+      rep.sigFields ? `<span class="v on">${rep.sigFields} removed</span>` : `<span class="v off">none</span>`}</div>`);
+    rows.push(`<div class="ln"><span class="k">Read-only form fields</span>${
+      rep.roCleared ? `<span class="v on">${rep.roCleared} unlocked</span>` : `<span class="v off">none</span>`}</div>`);
+    if(rep.annots) rows.push(`<div class="ln"><span class="k">Signature widgets</span><span class="v on">${rep.annots} cleared</span></div>`);
+    reportEl.innerHTML=rows.join("");
+    reportCard.style.display="";
+  }
+
+  async function run(){
+    if(!srcBytes){ setStatus("Add a PDF first.","err"); return; }
+    if(busy) return; busy=true;
+    unlockBtn.disabled=true; downloadBtn.disabled=true; showProgress(); setStatus("Unlocking...","busy");
+    try{
+      const password=pwInput.value||"";
+      const { out, rep }=await unlockBytes(srcBytes, password);
+      lastPdf=out.slice(0);
+      pwCard.style.display="none";
+      renderReport(rep);
+      await renderPdf(out);
+      downloadBtn.disabled=false;
+      const did=rep.decrypted||rep.sigFlags!=null||rep.perms||rep.sigFields||rep.roCleared;
+      setStatus((did?"Unlocked.":"No locks present; rebuilt a clean copy.")+" "+(out.length/1024).toFixed(0)+" KB.","ok");
+    }catch(err){
+      if(err && err.message==="PASSWORD_REQUIRED"){
+        pwCard.style.display=""; pwInput.focus();
+        setStatus("This PDF needs an open password. Enter it, then Unlock again.","busy");
+      }else if(err && err.password){
+        pwCard.style.display=""; pwInput.focus();
+        setStatus(err.message,"err");
+      }else{
+        console.error(err); viewer.innerHTML='<div class="empty">Could not unlock this PDF. See details below.</div>';
+        pageInfo.textContent=""; reportCard.style.display="none";
+        logBox.hidden=false; logEl.textContent=String(err&&err.message||err); logBox.open=true;
+        setStatus("Error: "+(err&&err.message?err.message:"failed"),"err");
+      }
+    }finally{ hideProgress(); unlockBtn.disabled=!srcBytes; busy=false; }
+  }
+  unlockBtn.addEventListener("click", run);
+  pwInput.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); run(); }});
+
+  // ---- preview ----
+  async function renderPdf(bytes){
+    if(!window.pdfjsLib){ setStatus("PDF viewer failed to load.","err"); return; }
+    viewer.innerHTML="";
+    const doc=await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+    pageInfo.textContent=doc.numPages+(doc.numPages===1?" page":" pages");
+    const targetWidth=Math.min(viewer.clientWidth-36,900);
+    const dpr=window.devicePixelRatio||1;
+    for(let n=1;n<=doc.numPages;n++){
+      const page=await doc.getPage(n);
+      const base=page.getViewport({scale:1});
+      const vp=page.getViewport({scale:(targetWidth/base.width)*dpr});
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.floor(vp.width); canvas.height=Math.floor(vp.height);
+      canvas.style.width=Math.floor(vp.width/dpr)+"px";
+      canvas.setAttribute("role","img"); canvas.setAttribute("aria-label","Page "+n);
+      viewer.appendChild(canvas);
+      await page.render({ canvasContext:canvas.getContext("2d"), viewport:vp }).promise;
+    }
+  }
+
+  // ---- download ----
+  downloadBtn.addEventListener("click", ()=>{
+    if(!lastPdf) return;
+    const name=(srcName||"document").replace(/.*\//,"").replace(/\.pdf$/i,"")+"-unlocked.pdf";
+    const url=URL.createObjectURL(new Blob([lastPdf],{type:"application/pdf"}));
+    const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+  });
+
+  // ---- reset ----
+  resetBtn.addEventListener("click", ()=>{
+    stopWatching(); $("liveStatus").textContent="";
+    srcBytes=null; srcName=null; lastPdf=null;
+    fileListEl.innerHTML=""; reportCard.style.display="none"; logBox.hidden=true;
+    pwCard.style.display="none"; pwInput.value="";
+    viewer.innerHTML='<div class="empty">The unlocked PDF will appear here.</div>';
+    pageInfo.textContent=""; hideProgress();
+    unlockBtn.disabled=true; downloadBtn.disabled=true;
+    setStatus("Cleared. Add a PDF to begin.","");
+  });
+
+  // ---- Live folder (File System Access API; Chrome/Edge) ----
+  const openFolderBtn=$("openFolderBtn"), vscodeBtn=$("vscodeBtn"), autoUnlock=$("autoUnlock"), liveStatus=$("liveStatus"), liveUnsupported=$("liveUnsupported");
+  const FS_OK=typeof window.showDirectoryPicker==="function";
+  vscodeBtn.addEventListener("click", ()=>window.open("https://vscode.dev/","_blank","noopener"));
+  if(!FS_OK){ openFolderBtn.disabled=true; liveUnsupported.hidden=false; }
+  else openFolderBtn.addEventListener("click", pickFolder);
+
+  function stopWatching(){ if(watchTimer){ clearInterval(watchTimer); watchTimer=null; } dirHandle=null; lastSig=""; }
+  const isUnlocked=(n)=>/-unlocked\.pdf$/i.test(n);
+  const isPdf=(n)=>/\.pdf$/i.test(n);
+
+  async function listPdfs(){
+    const out=[];
+    for await (const [name,entry] of dirHandle.entries()){
+      if(entry.kind!=="file"||name.startsWith(".")) continue;
+      if(isPdf(name) && !isUnlocked(name)) out.push({name,entry});
+    }
+    return out;
+  }
+  async function signature(list){
+    let sig="";
+    for(const {name,entry} of list){ const f=await entry.getFile(); sig+=name+":"+f.size+":"+f.lastModified+";"; }
+    return sig;
+  }
+  async function pickFolder(){
+    let handle;
+    try{ handle=await window.showDirectoryPicker({ mode:"readwrite" }); }
+    catch(e){ return; }
+    dirHandle=handle;
+    liveStatus.textContent="Watching this folder. Drop locked PDFs in; unlocked copies are written next to them.";
+    if(watchTimer) clearInterval(watchTimer);
+    lastSig=await signature(await listPdfs());
+    watchTimer=setInterval(poll,1500);
+    poll();
+  }
+  async function poll(){
+    if(!dirHandle||busy) return;
+    try{
+      const list=await listPdfs();
+      const sig=await signature(list);
+      if(sig===lastSig) return;
+      lastSig=sig;
+      if(!autoUnlock.checked) return;
+      for(const {name,entry} of list){
+        const outName=name.replace(/\.pdf$/i,"")+"-unlocked.pdf";
+        let exists=true; try{ await dirHandle.getFileHandle(outName); }catch(_){ exists=false; }
+        if(exists) continue;
+        const f=await entry.getFile();
+        const bytes=new Uint8Array(await f.arrayBuffer());
+        try{
+          const { out, rep }=await unlockBytes(bytes, "");   // no password in auto mode
+          const fh=await dirHandle.getFileHandle(outName,{create:true});
+          const w=await fh.createWritable(); await w.write(out); await w.close();
+          srcName=name; lastPdf=out.slice(0); downloadBtn.disabled=false;
+          renderReport(rep); await renderPdf(out);
+          liveStatus.textContent="Wrote "+outName+".";
+          setStatus("Auto-unlocked "+name+".","ok");
+        }catch(err){
+          const why = (err&&err.message==="PASSWORD_REQUIRED") ? "needs a password" : (err&&err.message||"error");
+          liveStatus.textContent="Skipped "+name+": "+why+".";
+        }
+      }
+      lastSig=await signature(await listPdfs());
+    }catch(e){ stopWatching(); liveStatus.textContent="Stopped watching (folder access ended)."; }
+  }
+
+  setStatus("Idle. Add a PDF to begin.","");
+})();
+</script>
+</body>
+</html>

@@ -92,13 +92,13 @@
     <a href="md2pdf.html">MD to PDF</a>
     <a href="beautify.html">Beautify</a>
     <a href="diff.html">Compare</a>
-    <a href="pdfunlock.html" class="active" aria-current="page">PDF Unlock</a>
     <a href="cyberchef.html">CyberChef</a>
+    <a href="pdfunlock.html" class="active" aria-current="page">PDF Unlock</a>
   </div>
 </nav>
 <header>
   <h1>PDF Unlock for Editing <span class="pill">in-browser</span></h1>
-  <span class="sub">Strip the AppendOnly signature flag, certification lock, and read-only flags, and remove password or permission encryption, then rebuild a clean editable copy. Runs locally; nothing is uploaded.</span>
+  <span class="sub">Unlock form fields while keeping the signature cryptographically valid (incremental update), or make the file fully editable by flattening or removing the signature and stripping certification, read-only, and encryption locks. Runs locally; nothing is uploaded.</span>
 </header>
 
 <div class="wrap">
@@ -139,6 +139,16 @@
       </details>
     </div>
 
+    <div class="card">
+      <label class="label" for="mode">Mode</label>
+      <select id="mode">
+        <option value="keep">Keep signature valid, unlock form fields</option>
+        <option value="flatten">Make fully editable, flatten signature to a graphic</option>
+        <option value="remove">Make fully editable, remove signature</option>
+      </select>
+      <p class="note" id="modeNote" style="margin:8px 0 0">Appends an incremental update that unlocks text and checkbox fields. The existing signature stays cryptographically valid (no signed bytes are changed).</p>
+    </div>
+
     <div class="row">
       <button class="btn" id="unlockBtn" disabled>Unlock for editing</button>
       <button class="btn secondary" id="resetBtn" title="Clear everything" style="width:auto;padding-left:16px;padding-right:16px">Reset</button>
@@ -153,7 +163,7 @@
       <span id="statusText">Idle. Add a PDF to begin.</span>
     </div>
 
-    <p class="note">Fully client side. Two engines load only when needed: <strong>pdf-lib</strong> removes the document-level edit locks browsers honour (AcroForm <code>SigFlags</code> AppendOnly, certification <code>Perms</code>/DocMDP, signature and read-only flags); <strong>qpdf</strong> (WebAssembly) removes password and permission encryption.</p>
+    <p class="note">Fully client side. <strong>Keep signature valid</strong> appends an incremental update with <strong>pdf-lib</strong> that only clears read-only and field locks, leaving every signed byte untouched. <strong>Make fully editable</strong> rewrites the file: pdf-lib strips <code>SigFlags</code> AppendOnly, certification <code>Perms</code>/DocMDP, XFA and signatures, and <strong>qpdf</strong> (WebAssembly) removes password or permission encryption. Engines load only when used.</p>
   </aside>
 
   <main class="main" id="main">
@@ -257,50 +267,146 @@
     throw new Error("qpdf could not process this PDF"+(errs.length?": "+errs[0]:"."));
   }
 
-  // ---- Stage 2: pdf-lib strip edit locks (verified: SigFlags / Perms / Sig fields / read-only) ----
-  async function stripLocks(bytes){
+  // ---- Stage 2: pdf-lib strip edit locks. Signatures are flattened (kept visible) or removed.
+  // Verified: SigFlags / Perms / XFA / Sig fields / read-only flags; appearance baked into page content.
+  async function stripLocks(bytes, keepSignatures){
     const PL=await loadPdfLib();
-    const { PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFBool }=PL;
-    const rep={ sigFlags:null, perms:false, sigFields:0, roCleared:0, annots:0, pages:0 };
-    const doc=await PDFDocument.load(bytes,{updateMetadata:false});
-    const cat=doc.catalog;
+    const { PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFBool, PDFRef, PDFStream,
+            pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject }=PL;
+    const num=(x)=>x?x.asNumber():0;
+    const rep={ sigFlags:null, perms:false, sigFlattened:0, sigFields:0, roCleared:0, xfa:false, pages:0 };
+    const doc=await PDFDocument.load(bytes,{updateMetadata:false, throwOnInvalidObject:false});
+    const ctx=doc.context, cat=doc.catalog;
+    let cnt=0;
+    // Pass 1: signature widgets on each page (flatten the appearance, then drop the widget)
+    const pages=doc.getPages(); rep.pages=pages.length;
+    for(const page of pages){
+      const annots=page.node.lookupMaybe(PDFName.of("Annots"), PDFArray); if(!annots) continue;
+      const rm=[];
+      for(let i=0;i<annots.size();i++){
+        const a=annots.lookup(i, PDFDict); if(!a) continue;
+        const sub=a.get(PDFName.of("Subtype")); if(!sub || sub.toString()!=="/Widget") continue;
+        let ft=a.get(PDFName.of("FT"));
+        if(!ft){ const par=a.lookupMaybe(PDFName.of("Parent"), PDFDict); if(par) ft=par.get(PDFName.of("FT")); }
+        if(!ft || ft.toString()!=="/Sig") continue;
+        if(keepSignatures){
+          const ap=a.lookupMaybe(PDFName.of("AP"), PDFDict);
+          const rect=a.lookupMaybe(PDFName.of("Rect"), PDFArray);
+          if(ap && rect){
+            let nRef=ap.get(PDFName.of("N")); const nObj=ap.lookup(PDFName.of("N"));
+            if(nObj && (nObj instanceof PDFStream || nObj.dict)){
+              if(!(nRef instanceof PDFRef)) nRef=ctx.register(nObj);
+              const bbox=nObj.dict.lookupMaybe(PDFName.of("BBox"), PDFArray);
+              const x0=num(rect.lookup(0,PDFNumber)),y0=num(rect.lookup(1,PDFNumber)),x1=num(rect.lookup(2,PDFNumber)),y1=num(rect.lookup(3,PDFNumber));
+              let bx0=0,by0=0,bx1=1,by1=1;
+              if(bbox){bx0=num(bbox.lookup(0,PDFNumber));by0=num(bbox.lookup(1,PDFNumber));bx1=num(bbox.lookup(2,PDFNumber));by1=num(bbox.lookup(3,PDFNumber));}
+              const bw=(bx1-bx0)||1,bh=(by1-by0)||1,rw=Math.abs(x1-x0),rh=Math.abs(y1-y0);
+              const sx=rw/bw,sy=rh/bh,rx=Math.min(x0,x1),ry=Math.min(y0,y1);
+              const nm="FlatSig"+(cnt++);
+              let res=page.node.lookupMaybe(PDFName.of("Resources"), PDFDict);
+              if(!res){res=ctx.obj({});page.node.set(PDFName.of("Resources"),res);}
+              let xo=res.lookupMaybe(PDFName.of("XObject"), PDFDict);
+              if(!xo){xo=ctx.obj({});res.set(PDFName.of("XObject"),xo);}
+              xo.set(PDFName.of(nm),nRef);
+              page.pushOperators(pushGraphicsState(),concatTransformationMatrix(sx,0,0,sy,rx-sx*bx0,ry-sy*by0),drawObject(nm),popGraphicsState());
+              rep.sigFlattened++;
+            }
+          }
+        }
+        rm.push(i);   // remove the interactive signature widget
+      }
+      for(let k=rm.length-1;k>=0;k--) annots.remove(rm[k]);
+    }
+    // Pass 2: AcroForm cleanup (SigFlags, XFA, signature fields, read-only flags)
     const acro=cat.lookupMaybe(PDFName.of("AcroForm"), PDFDict);
     if(acro){
       const sf=acro.lookupMaybe(PDFName.of("SigFlags"), PDFNumber);
       if(sf){ rep.sigFlags=sf.asNumber(); acro.delete(PDFName.of("SigFlags")); }
+      if(acro.has(PDFName.of("XFA"))){ acro.delete(PDFName.of("XFA")); rep.xfa=true; }
       const fields=acro.lookupMaybe(PDFName.of("Fields"), PDFArray);
       if(fields){
         for(let i=fields.size()-1;i>=0;i--){
           const f=fields.lookup(i, PDFDict); if(!f) continue;
           const ft=f.get(PDFName.of("FT"));
-          if(ft && ft.toString()==="/Sig"){
-            f.delete(PDFName.of("V")); f.delete(PDFName.of("Lock"));
-            fields.remove(i); rep.sigFields++;
-          } else {
-            const ff=f.lookupMaybe(PDFName.of("Ff"), PDFNumber);
-            if(ff && (ff.asNumber()&1)){ f.set(PDFName.of("Ff"), PDFNumber.of(ff.asNumber()&~1)); rep.roCleared++; }
-          }
+          if(ft && ft.toString()==="/Sig"){ f.delete(PDFName.of("V")); f.delete(PDFName.of("Lock")); fields.remove(i); rep.sigFields++; }
+          else { const ff=f.lookupMaybe(PDFName.of("Ff"), PDFNumber); if(ff && (ff.asNumber()&1)){ f.set(PDFName.of("Ff"), PDFNumber.of(ff.asNumber()&~1)); rep.roCleared++; } }
         }
         if(fields.size()>0 && PDFBool) acro.set(PDFName.of("NeedAppearances"), PDFBool.True);
       }
     }
+    // Pass 3: catalog certification / usage-rights lock
     if(cat.has(PDFName.of("Perms"))){ cat.delete(PDFName.of("Perms")); rep.perms=true; }
-    const pages=doc.getPages(); rep.pages=pages.length;
-    for(const page of pages){
-      const annots=page.node.lookupMaybe(PDFName.of("Annots"), PDFArray);
-      if(!annots) continue;
-      for(let i=annots.size()-1;i>=0;i--){
-        const a=annots.lookup(i, PDFDict); if(!a) continue;
-        const ft=a.get(PDFName.of("FT")); const sub=a.get(PDFName.of("Subtype"));
-        if(ft && ft.toString()==="/Sig" && sub && sub.toString()==="/Widget"){ annots.remove(i); rep.annots++; }
-      }
-    }
     const out=await doc.save({ useObjectStreams:false });   // full rewrite breaks AppendOnly chain
     return { out, rep };
   }
 
+  // ---- Keep-signature mode: incremental update that only clears ReadOnly/Lock on form fields.
+  // Verified with pyhanko: the signature's ByteRange, digest, and PKCS#7 are byte-identical afterwards.
+  function lastStartxref(bytes){
+    const pat=[115,116,97,114,116,120,114,101,102]; // "startxref"
+    for(let i=bytes.length-pat.length;i>=0;i--){
+      let ok=true; for(let j=0;j<pat.length;j++){ if(bytes[i+j]!==pat[j]){ok=false;break;} }
+      if(ok){
+        let k=i+pat.length; while(k<bytes.length && (bytes[k]===13||bytes[k]===10||bytes[k]===32||bytes[k]===9)) k++;
+        let num=0,found=false; while(k<bytes.length && bytes[k]>=48 && bytes[k]<=57){ num=num*10+(bytes[k]-48); k++; found=true; }
+        if(found) return num;
+      }
+    }
+    return null;
+  }
+  async function incrementalUnlock(orig){
+    const PL=await loadPdfLib();
+    const { PDFDocument, PDFName, PDFDict, PDFArray, PDFNumber, PDFRef }=PL;
+    const enc=(s)=>new TextEncoder().encode(s);
+    const doc=await PDFDocument.load(orig,{updateMetadata:false});
+    const ctx=doc.context;
+    const acro=doc.catalog.lookupMaybe(PDFName.of("AcroForm"), PDFDict);
+    const rep={ mode:"keep", cleared:0, locks:0, signed:false, certified:false, pages:doc.getPageCount() };
+    if(acro){ const sf=acro.lookupMaybe(PDFName.of("SigFlags"), PDFNumber); if(sf && (sf.asNumber()&1)) rep.signed=true; }
+    if(doc.catalog.has(PDFName.of("Perms"))) rep.certified=true;
+    const modified=[];
+    if(acro){
+      const fields=acro.lookupMaybe(PDFName.of("Fields"), PDFArray);
+      if(fields) for(let i=0;i<fields.size();i++){
+        const ref=fields.get(i); if(!(ref instanceof PDFRef)) continue;
+        const f=ctx.lookup(ref); if(!(f instanceof PDFDict)) continue;
+        const ft=f.get(PDFName.of("FT")); if(ft && ft.toString()==="/Sig") continue;  // never touch signatures
+        let changed=false;
+        const ff=f.lookupMaybe(PDFName.of("Ff"), PDFNumber);
+        if(ff && (ff.asNumber()&1)){ f.set(PDFName.of("Ff"), PDFNumber.of(ff.asNumber()&~1)); rep.cleared++; changed=true; }
+        if(f.has(PDFName.of("Lock"))){ f.delete(PDFName.of("Lock")); rep.locks++; changed=true; }
+        if(changed){ const b=new Uint8Array(f.sizeInBytes()); f.copyBytesInto(b,0); modified.push({num:ref.objectNumber, gen:ref.generationNumber||0, bytes:b}); }
+      }
+    }
+    if(!modified.length) return { out: orig, rep, noop:true };
+    const base=orig.length; const chunks=[]; let len=0;
+    const put=(u8)=>{chunks.push(u8); len+=u8.length;}; const putS=(s)=>put(enc(s));
+    putS("\n");
+    const offsets={};
+    for(const m of modified){ offsets[m.num]=base+len; putS(m.num+" "+m.gen+" obj\n"); put(m.bytes); putS("\nendobj\n"); }
+    const xrefOff=base+len;
+    const nums=Object.keys(offsets).map(Number).sort((a,b)=>a-b);
+    let xref="xref\n",i=0;
+    while(i<nums.length){ let j=i; while(j+1<nums.length && nums[j+1]===nums[j]+1) j++;
+      xref+=nums[i]+" "+(j-i+1)+"\n";
+      for(let k=i;k<=j;k++) xref+=String(offsets[nums[k]]).padStart(10,"0")+" 00000 n \n";
+      i=j+1; }
+    putS(xref);
+    const rootRef=ctx.trailerInfo.Root;
+    let maxObj=0; for(const [ref] of ctx.enumerateIndirectObjects()) maxObj=Math.max(maxObj, ref.objectNumber);
+    const prev=lastStartxref(orig);
+    let idBytes=null; const idArr=ctx.trailerInfo.ID;
+    if(idArr){ idBytes=new Uint8Array(idArr.sizeInBytes()); idArr.copyBytesInto(idBytes,0); }
+    putS("trailer\n<< /Size "+(maxObj+1)+" /Root "+rootRef.objectNumber+" "+(rootRef.generationNumber||0)+" R /Prev "+prev);
+    if(idBytes){ putS(" /ID "); put(idBytes); }
+    putS(" >>\n"); putS("startxref\n"+xrefOff+"\n%%EOF\n");
+    const tail=new Uint8Array(len); let o=0; for(const c of chunks){ tail.set(c,o); o+=c.length; }
+    const out=new Uint8Array(base+len); out.set(orig,0); out.set(tail,base);
+    return { out, rep, noop:false };
+  }
+
   // ---- pipeline: decrypt if needed, then strip ----
-  async function unlockBytes(bytes, password){
+  async function unlockBytes(bytes, password, keepSignatures){
     const PL=await loadPdfLib();
     let working=bytes, decrypted=false;
     try{
@@ -309,7 +415,7 @@
       working=await qpdfDecrypt(bytes, password);                // Stage 1
       decrypted=true;
     }
-    const { out, rep }=await stripLocks(working);                // Stage 2
+    const { out, rep }=await stripLocks(working, keepSignatures); // Stage 2
     rep.decrypted=decrypted;
     return { out, rep };
   }
@@ -337,18 +443,24 @@
 
   function renderReport(rep){
     const rows=[];
-    const yn=(b,on,off)=>`<span class="v ${b?'on':'off'}">${b?on:off}</span>`;
+    const on=(t)=>`<span class="v on">${t}</span>`, off=(t)=>`<span class="v off">${t}</span>`, warn=(t)=>`<span class="v warn">${t}</span>`;
     rows.push(`<div class="ln"><span class="k">Pages</span><span class="v">${rep.pages}</span></div>`);
-    rows.push(`<div class="ln"><span class="k">Encryption</span>${
-      rep.decrypted ? `<span class="v on">password/permission lock removed</span>` : `<span class="v off">none</span>`}</div>`);
-    rows.push(`<div class="ln"><span class="k">AppendOnly SigFlags</span>${
-      rep.sigFlags!=null ? `<span class="v on">found (${rep.sigFlags}) and removed</span>` : `<span class="v off">none</span>`}</div>`);
-    rows.push(`<div class="ln"><span class="k">Certification (Perms)</span>${yn(rep.perms,"found and removed","none")}</div>`);
-    rows.push(`<div class="ln"><span class="k">Signature fields</span>${
-      rep.sigFields ? `<span class="v on">${rep.sigFields} removed</span>` : `<span class="v off">none</span>`}</div>`);
-    rows.push(`<div class="ln"><span class="k">Read-only form fields</span>${
-      rep.roCleared ? `<span class="v on">${rep.roCleared} unlocked</span>` : `<span class="v off">none</span>`}</div>`);
-    if(rep.annots) rows.push(`<div class="ln"><span class="k">Signature widgets</span><span class="v on">${rep.annots} cleared</span></div>`);
+    if(rep.mode==="keep"){
+      rows.push(`<div class="ln"><span class="k">Method</span>${on("incremental update (signature preserved)")}</div>`);
+      rows.push(`<div class="ln"><span class="k">Existing signature</span>${rep.signed?on("kept, still valid"):off("none found")}</div>`);
+      rows.push(`<div class="ln"><span class="k">Read-only fields</span>${rep.cleared?on(rep.cleared+" unlocked for editing"):off("none locked")}</div>`);
+      if(rep.locks) rows.push(`<div class="ln"><span class="k">Field locks</span>${on(rep.locks+" removed")}</div>`);
+      if(rep.certified) rows.push(`<div class="ln"><span class="k">Certification</span>${warn("present: Acrobat may warn that changes are not permitted, though the signature stays cryptographically intact")}</div>`);
+    } else {
+      rows.push(`<div class="ln"><span class="k">Encryption</span>${rep.decrypted?on("password/permission lock removed"):off("none")}</div>`);
+      rows.push(`<div class="ln"><span class="k">AppendOnly SigFlags</span>${rep.sigFlags!=null?on("found ("+rep.sigFlags+") and removed"):off("none")}</div>`);
+      rows.push(`<div class="ln"><span class="k">Certification (Perms)</span>${rep.perms?on("found and removed"):off("none")}</div>`);
+      if(rep.sigFlattened) rows.push(`<div class="ln"><span class="k">Signatures</span>${on(rep.sigFlattened+" kept as flat graphic, lock removed")}</div>`);
+      else if(rep.sigFields) rows.push(`<div class="ln"><span class="k">Signatures</span>${on(rep.sigFields+" removed")}</div>`);
+      else rows.push(`<div class="ln"><span class="k">Signatures</span>${off("none")}</div>`);
+      if(rep.roCleared) rows.push(`<div class="ln"><span class="k">Read-only form fields</span>${on(rep.roCleared+" unlocked")}</div>`);
+      if(rep.xfa) rows.push(`<div class="ln"><span class="k">XFA form</span>${on("removed")}</div>`);
+    }
     reportEl.innerHTML=rows.join("");
     reportCard.style.display="";
   }
@@ -358,14 +470,30 @@
     if(busy) return; busy=true;
     unlockBtn.disabled=true; downloadBtn.disabled=true; showProgress(); setStatus("Unlocking...","busy");
     try{
+      const mode=$("mode").value;
       const password=pwInput.value||"";
-      const { out, rep }=await unlockBytes(srcBytes, password);
+      let out, rep;
+      if(mode==="keep"){
+        // incremental update must not rewrite signed bytes, so it needs an unencrypted file
+        try{ await (await loadPdfLib()).PDFDocument.load(srcBytes,{updateMetadata:false}); }
+        catch(e){ throw new Error("This file is encrypted, so signature-preserving mode cannot append to it. Use a Make fully editable mode (it decrypts but breaks the signature)."); }
+        const r=await incrementalUnlock(srcBytes); out=r.out; rep=r.rep;
+        if(r.noop){
+          reportCard.style.display="none"; lastPdf=out.slice(0); pwCard.style.display="none";
+          await renderPdf(out); downloadBtn.disabled=false;
+          setStatus("No read-only form fields found. The form may already be fillable, or it has no fillable fields.","ok");
+          return;
+        }
+      } else {
+        const r=await unlockBytes(srcBytes, password, mode==="flatten"); out=r.out; rep=r.rep; rep.mode=mode;
+      }
       lastPdf=out.slice(0);
       pwCard.style.display="none";
       renderReport(rep);
       await renderPdf(out);
       downloadBtn.disabled=false;
-      const did=rep.decrypted||rep.sigFlags!=null||rep.perms||rep.sigFields||rep.roCleared;
+      const did=(mode==="keep") ? (rep.cleared||rep.locks)
+                                : (rep.decrypted||rep.sigFlags!=null||rep.perms||rep.sigFields||rep.roCleared);
       setStatus((did?"Unlocked.":"No locks present; rebuilt a clean copy.")+" "+(out.length/1024).toFixed(0)+" KB.","ok");
     }catch(err){
       if(err && err.message==="PASSWORD_REQUIRED"){
@@ -477,7 +605,10 @@
         const f=await entry.getFile();
         const bytes=new Uint8Array(await f.arrayBuffer());
         try{
-          const { out, rep }=await unlockBytes(bytes, "");   // no password in auto mode
+          const mode=$("mode").value;
+          let out, rep;
+          if(mode==="keep"){ const r=await incrementalUnlock(bytes); out=r.out; rep=r.rep; }
+          else { const r=await unlockBytes(bytes, "", mode==="flatten"); out=r.out; rep=r.rep; rep.mode=mode; }
           const fh=await dirHandle.getFileHandle(outName,{create:true});
           const w=await fh.createWritable(); await w.write(out); await w.close();
           srcName=name; lastPdf=out.slice(0); downloadBtn.disabled=false;
@@ -492,6 +623,13 @@
       lastSig=await signature(await listPdfs());
     }catch(e){ stopWatching(); liveStatus.textContent="Stopped watching (folder access ended)."; }
   }
+
+  const MODE_NOTES={
+    keep:"Appends an incremental update that unlocks text and checkbox fields. The existing signature stays cryptographically valid (no signed bytes are changed).",
+    flatten:"Rewrites the file: removes every lock and flattens the signature into a static graphic. The signature is no longer cryptographically valid, but the page stays fully editable.",
+    remove:"Rewrites the file: removes every lock and deletes the signature entirely, leaving a clean fully editable PDF."
+  };
+  $("mode").addEventListener("change", ()=>{ const m=$("mode").value; $("modeNote").textContent=MODE_NOTES[m]||""; if(srcBytes) setStatus("Mode set. Click Unlock for editing.",""); });
 
   setStatus("Idle. Add a PDF to begin.","");
 })();

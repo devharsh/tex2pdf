@@ -42,6 +42,10 @@ Compare two images side by side, even across formats (PNG, JPG, SVG, WebP, GIF, 
 
 ![Image Compare with two PDFs side by side: previews, metadata tables, the pixel and perceptual similarity scores, and the difference map](<screenshots/pdf image compare.png>)
 
+### PDF Unlock (`html/pdfunlock.html`)
+
+Unlock PDFs for editing in your browser. Keep an existing signature cryptographically valid while unlocking form fields with an incremental update, or make the file fully editable by flattening or removing the signature and stripping the AcroForm AppendOnly `SigFlags`, certification (DocMDP) `Perms`, XFA, and read-only flags. It also removes password or permission encryption with qpdf compiled to WebAssembly. It previews the result with PDF.js and supports live VS Code folder watching. Nothing is uploaded.
+
 ### CyberChef (`html/cyberchef.html`)
 
 The bundled Cyber Swiss Army Knife (by GCHQ) for encoding, encryption, compression, data formats, and hundreds of other operations, running locally with no server. Its modules load on demand when you open the tool.
@@ -138,6 +142,7 @@ html/md2pdf.html           Markdown to PDF tool
 html/beautify.html         Beautify and highlight tool
 html/diff.html             Compare tool
 html/imgcompare.html       Image Compare tool
+html/pdfunlock.html        PDF Unlock tool
 html/cyberchef.html        CyberChef wrapper
 screenshots/               Demo images used in this README
 sample.tex                 Example document for testing
@@ -160,7 +165,7 @@ The home page (`index.html`) and `404.html` stay at the repo root because GitHub
 
 ## Privacy
 
-All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and helper libraries from a CDN (PDF.js and JSZip for the TeX viewer, and on the tool pages marked, DOMPurify, highlight.js, and KaTeX). Image Compare analyses pixels with the built-in canvas. Your document content is never transmitted.
+All processing happens in your browser. The only network requests are loading the page, the engine and package files from this site, and helper libraries from a CDN (PDF.js and JSZip for the TeX viewer, on the tool pages marked, DOMPurify, highlight.js, and KaTeX, and pdf-lib and qpdf-wasm for PDF Unlock). Image Compare analyses pixels with the built-in canvas. Your document content is never transmitted.
 
 ## Credits and licenses
 
@@ -168,6 +173,7 @@ All processing happens in your browser. The only network requests are loading th
 - PDF rendering: [PDF.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache-2.0.
 - Zip reading: [JSZip](https://github.com/Stuk/jszip), MIT.
 - Markdown rendering: [marked](https://github.com/markedjs/marked) (MIT), [DOMPurify](https://github.com/cure53/DOMPurify) (Apache-2.0 or MPL-2.0), [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause), and [KaTeX](https://github.com/KaTeX/KaTeX) (MIT).
+- PDF Unlock: [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT) and [qpdf](https://github.com/qpdf/qpdf) compiled to WebAssembly (Apache-2.0).
 - Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.
 
 ## Author

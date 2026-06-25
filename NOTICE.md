@@ -15,7 +15,7 @@ The bundled `texlive-basic.data` contains TeX Live programs and packages (TeX by
 
 ## Bundled CTAN packages
 
-`core/texmf/booktabs.sty`, `enumitem.sty`, and `url.sty` are from CTAN, under the LaTeX Project Public License (LPPL). `booktabs.sty` was generated from the package source. Sources: https://ctan.org/pkg/booktabs , https://ctan.org/pkg/enumitem , https://ctan.org/pkg/url
+`core/texmf/` bundles LaTeX support files taken from CTAN and the TeX Live distribution so that documents compile in the browser without a network round trip. These include `booktabs.sty`, `enumitem.sty`, and `url.sty`, and may include additional packages added for specific documents (for example `wrapfig`, `footmisc`, `xcolor`, `listings`, `array`/`tools`, `multirow`, `ragged2e`, `setspace`, `titlesec`, `lipsum`, `hyphenat`, and `biblatex` with its style and localization files). Each bundled file remains under its own license, most commonly the LaTeX Project Public License (LPPL); a few carry other free-software licenses (for example the GNU GPL). They are unmodified redistributions of the corresponding CTAN / TeX Live packages. Sources: https://ctan.org and https://tug.org/texlive/
 
 Because this project bundles AGPL-3.0 software, the combined work is licensed under AGPL-3.0. The complete corresponding source is this repository.
 

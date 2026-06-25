@@ -186,7 +186,7 @@ All processing happens in your browser. The only network requests are loading th
 - Git in the browser: [isomorphic-git](https://github.com/isomorphic-git/isomorphic-git) and [LightningFS](https://github.com/isomorphic-git/lightning-fs), MIT.
 - Markdown rendering: [marked](https://github.com/markedjs/marked) (MIT), [DOMPurify](https://github.com/cure53/DOMPurify) (Apache-2.0 or MPL-2.0), [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause), and [KaTeX](https://github.com/KaTeX/KaTeX) (MIT).
 - PDF Unlock: [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT) and [qpdf](https://github.com/qpdf/qpdf) compiled to WebAssembly (Apache-2.0).
-- Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.
+- Bundled LaTeX packages in `core/texmf/` (booktabs, enumitem, url, and any added for specific documents such as wrapfig, footmisc, xcolor, listings, biblatex, and others) are unmodified redistributions from CTAN and TeX Live, each under its own license, most commonly the LaTeX Project Public License (LPPL). See [NOTICE.md](NOTICE.md).
 
 ## Author
 

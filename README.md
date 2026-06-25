@@ -1,10 +1,10 @@
 # tex2pdf
 
-**TeX Viewer Online. View your TeX documents in any browser, no software needed.**
+**TeX Editor Online. Edit, compile, and view LaTeX in your browser, no software needed.**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20708417.svg)](https://doi.org/10.5281/zenodo.20708417)
 
-Compile LaTeX and view it as a PDF, entirely in your browser. No account, no install, no server, and nothing is uploaded. Drop in a `.tex` file and get a PDF back. The TeX engine is bundled as WebAssembly and runs inside the page.
+Write, compile, and view LaTeX as a PDF, entirely in your browser. No account, no install, no server, and nothing is uploaded. Edit in an embedded VS Code editor and compile to an accessible, vector-graphics PDF, or just drop in a `.tex` file and get a PDF back. The TeX engine is bundled as WebAssembly and runs inside the page.
 
 Live website: https://devharsh.github.io/tex2pdf/
 
@@ -14,13 +14,18 @@ Live website: https://devharsh.github.io/tex2pdf/
 
 Alongside the TeX viewer, the site bundles small client-side utilities. Each lives on its own page so its code loads only when you open it, keeping memory and first paint low. Everything runs in your browser; nothing is uploaded.
 
-### TeX to PDF (`index.html`)
+### TeX Editor (`index.html`)
 
-The flagship viewer (shown above). Upload a single `.tex`, several files, or a `.zip`, choose XeLaTeX or pdfLaTeX, and preview the PDF inline with a one-click download. Includes automatic main-file detection, an elapsed timer and progress bar, and live VS Code folder sync so the PDF rebuilds as you save.
+The flagship page is a full three-panel LaTeX editor (file tree, a VS Code editor, and a live PDF preview) with two modes:
+
+- **Editor mode** lets you create or import a project, edit `.tex` in an embedded Monaco (the VS Code editor core) with LaTeX syntax and best-practice linting, manage a file tree, and compile to PDF. It starts from accessible templates (article, report, math, beamer, CV) and publisher styles (IEEE, ACM, Springer LNCS, MDPI, Elsevier). Templates use `\DocumentMetadata` to produce tagged, accessible PDF/UA output, encourage vector graphics, and flag raster images.
+- **Quick View mode** is the original simple flow: drop a single `.tex`, several files, or a `.zip`, choose XeLaTeX, pdfLaTeX, or LuaLaTeX, and preview the PDF with a one-click download.
+
+It also connects to **GitHub and GitLab** (clone, commit, push) with a personal access token kept only in your browser, imports and exports `.zip` projects, and keeps the live VS Code folder sync. When a document needs a publisher class that is not in the bundled set, the editor fetches the class on demand from a CORS-enabled CDN mirror and recompiles; very heavy classes may still need a few extra files added manually. The best-practice linter flags inline `$...$` (suggests `\(...\)`), `eqnarray` (suggests `align`), raster `\includegraphics`, straight quotes, `\ref` (suggests `\cref`), unprefixed `\label`s, forced line breaks in body text, and a missing `\DocumentMetadata`.
 
 ### Markdown to PDF (`html/md2pdf.html`)
 
-Render a Markdown file and save it as a PDF, entirely in the browser. It handles GitHub-flavored Markdown (tables, task lists, strikethrough), highlights code, and renders math with KaTeX. Load or drag in a `.md` file, or paste text, then Save as PDF (through the print dialog), download the HTML, copy it, or clear. It also supports live VS Code folder editing, and its libraries load on demand.
+Render a Markdown file and save it as a PDF, entirely in the browser. It handles GitHub-flavored Markdown (tables, task lists, strikethrough), highlights code, and renders math with KaTeX. Load or drag in a `.md` file, or paste text, then Save as PDF (through the print dialog), download the HTML, copy it, or clear. It also supports live VS Code folder editing, and its libraries load on demand. A **Research paper** mode converts Markdown (with an optional YAML front matter block for title, author, abstract) to LaTeX and compiles a tagged, vector-graphics PDF with the same busytex engine as the editor, mapping headings to sections, fenced code to verbatim, tables to booktabs, images to figures, `[@key]` to `\cite`, and `$...$`/`$$...$$` to inline and display math.
 
 ### Beautify and highlight (`html/beautify.html`)
 
@@ -28,7 +33,7 @@ Re-indent and colour code entirely in the browser. It auto-detects the language 
 
 ![Beautify and highlight tool: language selector, input on the left and highlighted, re-indented output on the right](screenshots/beautify.png)
 
-### Compare (`html/diff.html`)
+### File Compare (`html/diff.html`)
 
 A side-by-side diff of two snippets, two text files, or two PDFs (compared by their extracted text). Toggle whitespace handling, swap sides, download the differences as a `.diff` file, or clear both sides.
 
@@ -36,7 +41,7 @@ A side-by-side diff of two snippets, two text files, or two PDFs (compared by th
 
 ### Image Compare (`html/imgcompare.html`)
 
-Compare two images side by side, even across formats (PNG, JPG, SVG, WebP, GIF, BMP, and the first page of a PDF). For each image it reads metadata that is hard to judge by eye, dimensions, file size, megapixels, aspect ratio, colour and channels, transparency, bit depth, and DPI (from the PNG or JPEG headers), and highlights the rows that differ between the two. It also computes two similarity scores, a pixel match (RMSE, resized to a common size, so different sizes and formats can be compared) and a perceptual match (difference hash), and renders a red difference map. Everything runs locally; nothing is uploaded.
+Compare two images side by side, even across formats (PNG, JPG, SVG, WebP, GIF, BMP, and the first page of a PDF). For each image it reads metadata that is hard to judge by eye, dimensions, file size, megapixels, aspect ratio, colour and channels, transparency, bit depth, and DPI (from the PNG or JPEG headers), and highlights the rows that differ between the two. It also computes two similarity scores, a pixel match (RMSE, resized to a common size, so different sizes and formats can be compared) and a perceptual match (difference hash), and renders a red difference map. An **Expand** view shows both images large, side by side or top and bottom (your choice), and you exit back to the metadata and similarity details. Everything runs locally; nothing is uploaded.
 
 ![Image Compare with a PNG and a PDF side by side: previews on a transparency checkerboard, metadata tables with the differing rows highlighted, similarity scores, and a red difference map](<screenshots/png image compare.png>)
 
@@ -58,14 +63,18 @@ Most LaTeX setups need a local TeX install or a cloud service that uploads your 
 
 ## Features
 
-- Upload a single `.tex` file, several files together (figures, `.bib`, `.cls`), or a `.zip` project.
-- Two engines: XeLaTeX (default, most reliable here) and pdfLaTeX.
-- The basic TeX Live set plus extra packages bundled separately (booktabs, enumitem, url) so common documents compile out of the box.
-- Automatic main-file detection, with a picker when a project has more than one `.tex`.
-- Live elapsed timer and progress bar during loading and compilation.
-- Inline preview of every page, plus a one-click PDF download.
+- A three-panel editor: file tree, a Monaco (VS Code) editor with LaTeX syntax, and a live PDF preview.
+- Editor mode and a simple Quick View mode for just turning a `.tex` into a PDF.
+- Three engines: XeLaTeX (default), pdfLaTeX, and LuaLaTeX.
+- Best-practice linter that enforces semantic markup (math mode, `align`, `\cref`, label prefixes, vector graphics, no manual line breaks).
+- Accessible, tagged PDF output via `\DocumentMetadata` (PDF/UA), with raster-image warnings.
+- Templates for articles, reports, math, slides, CVs, and publisher styles (IEEE, ACM, Springer, MDPI, Elsevier).
+- GitHub and GitLab integration (clone, commit, push) with the token kept only in your browser.
+- Import and export `.zip` projects; upload several files together (figures, `.bib`, `.cls`).
+- The basic TeX Live set plus bundled extras (booktabs, enumitem, url), with on-demand fetch of missing classes.
+- Automatic main-file detection, an elapsed timer and progress bar, inline preview, and one-click PDF download.
 - BibTeX runs automatically when a `.bib` file is present.
-- Responsive layout and keyboard-accessible controls. Custom 404 page.
+- Live VS Code folder sync. Responsive layout and keyboard-accessible controls. Custom 404 page.
 
 ## Choosing an engine
 
@@ -136,9 +145,10 @@ The included `.nojekyll` keeps GitHub Pages from processing the site with Jekyll
 ## Project structure
 
 ```
-index.html                 The TeX viewer UI (home page; at root for GitHub Pages)
+index.html                 The TeX editor UI (home page; at root for GitHub Pages)
 404.html                   Custom not-found page (at root for GitHub Pages)
-html/md2pdf.html           Markdown to PDF tool
+sitemap.xml, robots.txt    Search-engine sitemap and crawl rules
+html/md2pdf.html           Markdown to PDF and research-paper tool
 html/beautify.html         Beautify and highlight tool
 html/diff.html             Compare tool
 html/imgcompare.html       Image Compare tool
@@ -172,6 +182,8 @@ All processing happens in your browser. The only network requests are loading th
 - TeX engine and WebAssembly build: [busytex](https://github.com/busytex/busytex) and the [TeXlyre busytex](https://github.com/TeXlyre/texlyre-busytex) distribution, under AGPL-3.0.
 - PDF rendering: [PDF.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache-2.0.
 - Zip reading: [JSZip](https://github.com/Stuk/jszip), MIT.
+- In-browser editor: [Monaco Editor](https://github.com/microsoft/monaco-editor) by Microsoft, MIT.
+- Git in the browser: [isomorphic-git](https://github.com/isomorphic-git/isomorphic-git) and [LightningFS](https://github.com/isomorphic-git/lightning-fs), MIT.
 - Markdown rendering: [marked](https://github.com/markedjs/marked) (MIT), [DOMPurify](https://github.com/cure53/DOMPurify) (Apache-2.0 or MPL-2.0), [highlight.js](https://github.com/highlightjs/highlight.js) (BSD-3-Clause), and [KaTeX](https://github.com/KaTeX/KaTeX) (MIT).
 - PDF Unlock: [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT) and [qpdf](https://github.com/qpdf/qpdf) compiled to WebAssembly (Apache-2.0).
 - Bundled packages booktabs, enumitem, and url are from CTAN under the LaTeX Project Public License.

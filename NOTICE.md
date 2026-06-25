@@ -26,3 +26,15 @@ Loaded at runtime from a CDN. Copyright Mozilla Foundation, Apache License 2.0. 
 ## JSZip
 
 Loaded at runtime from a CDN. Copyright Stuart Knightley, dual licensed under the MIT License or GPLv3. https://github.com/Stuk/jszip
+
+## Monaco Editor
+
+Loaded at runtime from a CDN and used as the in-browser code editor on the editor page. Copyright Microsoft, MIT License. https://github.com/microsoft/monaco-editor
+
+## isomorphic-git and LightningFS
+
+Loaded at runtime from a CDN for in-browser GitHub and GitLab access (clone, commit, push) on the editor page. MIT License. https://github.com/isomorphic-git/isomorphic-git and https://github.com/isomorphic-git/lightning-fs
+
+## On-demand classes
+
+The editor can fetch publisher document classes (for example IEEEtran, acmart, llncs, mdpi, elsarticle) on demand from CORS-enabled CDN mirrors of their upstream repositories. Those files remain under their own licenses, typically the LaTeX Project Public License (LPPL). They are fetched into the browser at compile time and are not redistributed in this repository.

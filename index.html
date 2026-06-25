@@ -3,9 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TeX Viewer Online - view your TeX documents in any browser</title>
-<meta name="description" content="TeX Viewer Online. View your TeX documents in any browser, no software needed. Upload LaTeX and view the PDF locally; nothing is uploaded.">
+<title>TeX Editor Online - private in-browser LaTeX editor, compiler and PDF viewer</title>
+<meta name="description" content="A free, private, client-side LaTeX editor and viewer. Edit TeX with a VS Code editor, compile to accessible PDF with vector images, and preview locally. Git, templates, and best-practice linting. Nothing is uploaded.">
+<meta name="keywords" content="LaTeX editor, online TeX editor, browser LaTeX, accessible PDF, tagged PDF, PDF/UA, vector graphics LaTeX, Overleaf alternative, free LaTeX, client-side, no account, busytex, XeLaTeX, LuaLaTeX, GitHub, GitLab">
+<meta name="author" content="Devharsh Trivedi">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#0d1117">
+<link rel="canonical" href="https://devharsh.github.io/tex2pdf/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f6feb'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Georgia,serif' fill='white' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TeX Editor Online">
+<meta property="og:title" content="TeX Editor Online - private in-browser LaTeX editor and PDF viewer">
+<meta property="og:description" content="Edit and compile LaTeX to accessible, vector-graphics PDFs entirely in your browser. Free, no account, nothing uploaded. Git, templates and best-practice linting included.">
+<meta property="og:url" content="https://devharsh.github.io/tex2pdf/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TeX Editor Online - private in-browser LaTeX editor and PDF viewer">
+<meta name="twitter:description" content="Edit and compile LaTeX to accessible, vector PDFs entirely in your browser. Free, no account, nothing uploaded.">
+<!-- AEO/GEO: machine-readable facts -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TeX Editor Online",
+  "alternateName": "TeX Viewer Online",
+  "url": "https://devharsh.github.io/tex2pdf/",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "LaTeX editor",
+  "operatingSystem": "Any (web browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "isAccessibleForFree": true,
+  "softwareRequirements": "A modern web browser with WebAssembly. No account or installation.",
+  "featureList": [
+    "In-browser LaTeX editor (VS Code editor core)",
+    "Compile to PDF locally with WebAssembly (XeLaTeX, pdfLaTeX, LuaLaTeX)",
+    "Accessible, tagged PDF output via DocumentMetadata",
+    "Vector graphics enforcement (SVG, PDF, EPS)",
+    "LaTeX best-practice linting",
+    "GitHub and GitLab integration",
+    "Live VS Code folder sync",
+    "Quick view of an existing .tex as PDF",
+    "Fully private: nothing is uploaded"
+  ],
+  "author": { "@type": "Person", "name": "Devharsh Trivedi", "url": "https://orcid.org/0000-0001-6374-7249" },
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is this LaTeX editor free and does it require an account?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. TeX Editor Online is free and open source under the AGPL-3.0 license. It needs no account, no sign-up, and no installation. It runs entirely in your browser." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my document private? Is anything uploaded to a server?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Your document is private. Compilation runs locally in your browser with WebAssembly. Your TeX source and PDF are never uploaded to any server. The only network requests load the application, the TeX engine, and optional helper libraries." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I produce an accessible, tagged PDF in LaTeX?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Start your document with the DocumentMetadata command, for example DocumentMetadata{pdfstandard=ua-2, lang=en-US, testphase={phase-III}}. This enables the LaTeX tagging code so the PDF carries structure tags for screen readers (PDF/UA). The built-in templates do this for you." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why vector images instead of PNG or JPEG?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Vector formats (SVG, PDF, EPS) scale without blur, print sharply, and stay small for line art and diagrams. The editor flags raster images (PNG, JPEG, GIF, BMP) and recommends a vector alternative." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I connect GitHub or GitLab?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can clone a repository, edit files, then commit and push back to GitHub or GitLab using a personal access token that is stored only in your browser and sent only to your Git host." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this an Overleaf alternative?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It is a free, private, local-first alternative for editing and compiling LaTeX without a subscription or account. It does not include real-time multi-user collaboration; instead it integrates with Git and your local VS Code." }
+    }
+  ]
+}
+</script>
 <style>
   :root{
     --bg:#0d1117; --panel:#161b22; --panel2:#0b0f14; --border:#30363d;
@@ -13,56 +95,118 @@
     --ok:#3fb950; --err:#f85149; --warn:#d29922; --radius:10px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
+  html,body{margin:0}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg); color:var(--text); line-height:1.5;
-    display:flex; flex-direction:column; min-height:100%;
+    display:flex; flex-direction:column; min-height:100vh;
   }
+  .appshell{display:flex; flex-direction:column; height:100vh; flex:none; min-height:0}
   a{color:var(--accent2); text-decoration:none}
   a:hover{text-decoration:underline}
   :focus-visible{outline:3px solid var(--accent2); outline-offset:2px; border-radius:6px}
-  .skip{position:absolute; left:-999px; top:0; background:var(--accent); color:#fff; padding:8px 12px; z-index:10}
+  .skip{position:absolute; left:-999px; top:0; background:var(--accent); color:#fff; padding:8px 12px; z-index:30}
   .skip:focus{left:8px; top:8px}
+  .visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   .topnav{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
   .topnav .brand{font-weight:700;color:var(--text)}
   .topnav .links{display:flex;gap:6px;flex-wrap:wrap}
   .topnav .links a{padding:6px 10px;border-radius:7px;color:var(--muted);font-size:14px;text-decoration:none}
   .topnav .links a:hover{background:rgba(255,255,255,.05);color:var(--text)}
   .topnav .links a.active{background:rgba(31,111,235,.16);color:var(--text);font-weight:650}
-  header{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
-  header h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
-  header .sub{color:var(--muted); font-size:13px}
+  header.head{padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  header.head h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
+  header.head .sub{color:var(--muted); font-size:13px; flex:1 1 240px; min-width:0}
   .pill{display:inline-block; font-size:11px; padding:1px 7px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
-  .wrap{flex:1; display:grid; grid-template-columns:minmax(320px,380px) 1fr; min-height:0}
-  @media (max-width:860px){ .wrap{grid-template-columns:1fr} body{height:auto} #viewer{min-height:55vh} }
-  .side{border-right:1px solid var(--border); padding:18px; overflow:auto; display:flex; flex-direction:column; gap:16px; background:var(--panel)}
-  @media (max-width:860px){ .side{border-right:0; border-bottom:1px solid var(--border)} }
-  .main{padding:18px; overflow:auto; display:flex; flex-direction:column; gap:14px; min-height:0}
-  .card{background:var(--panel2); border:1px solid var(--border); border-radius:var(--radius); padding:14px}
+  .modes{display:flex; gap:6px; border:1px solid var(--border); border-radius:8px; padding:3px; background:var(--panel2)}
+  .modes button{background:transparent; border:0; color:var(--muted); padding:7px 12px; border-radius:6px; cursor:pointer; font-size:13px; min-height:38px}
+  .modes button[aria-pressed="true"]{background:rgba(31,111,235,.18); color:var(--text); font-weight:650}
+
+  /* Mobile panel tabs */
+  .mtabs{display:none; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--panel)}
+  .mtabs button{flex:1; background:var(--panel2); border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:9px; min-height:42px; cursor:pointer}
+  .mtabs button[aria-selected="true"]{border-color:var(--accent); color:var(--text); background:rgba(31,111,235,.16); font-weight:650}
+
+  .workspace{flex:1; display:grid; grid-template-columns:minmax(220px,280px) minmax(0,1.15fr) minmax(0,1fr); min-height:0}
+  .about{position:relative; z-index:1}
+  body.mode-view .workspace{grid-template-columns:minmax(320px,420px) minmax(0,1fr)}
+  body.mode-view .editor-only{display:none!important}
+  .panel{display:flex; flex-direction:column; min-height:0; min-width:0; border-right:1px solid var(--border); background:var(--panel)}
+  .panel:last-child{border-right:0}
+  .panel.preview{background:var(--bg)}
+  .panel-head{display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--border); background:var(--panel); flex-wrap:wrap}
+  .panel-head h2{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0; font-weight:650}
+  .panel-head .spacer{flex:1}
+  .panel-body{flex:1; min-height:0; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:12px}
+  .panel.editor .panel-body{padding:0; overflow:hidden}
+
+  .card{background:var(--panel2); border:1px solid var(--border); border-radius:var(--radius); padding:12px}
   fieldset.card{margin:0}
   legend, .label{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); padding:0; margin:0 0 8px}
-  .drop{border:2px dashed var(--border); border-radius:var(--radius); padding:24px 16px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; color:var(--muted); width:100%; background:transparent}
+  .drop{border:2px dashed var(--border); border-radius:var(--radius); padding:20px 14px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; color:var(--muted); width:100%; background:transparent}
   .drop:hover,.drop.drag{border-color:var(--accent); background:rgba(31,111,235,.08); color:var(--text)}
   .drop strong{color:var(--text)}
-  .seg{display:flex; gap:8px; border:0; padding:0; margin:0}
-  .seg label{flex:1; text-align:center; padding:10px; border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:14px; min-height:44px; display:flex; align-items:center; justify-content:center}
+  .seg{display:flex; gap:6px; border:0; padding:0; margin:0; flex-wrap:wrap}
+  .seg label{flex:1 1 30%; text-align:center; padding:9px 6px; border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:13px; min-height:42px; display:flex; align-items:center; justify-content:center}
   .seg label:has(input:checked){border-color:var(--accent); background:rgba(31,111,235,.16); font-weight:650}
   .seg input{position:absolute; opacity:0; width:1px; height:1px}
   .seg label:has(input:focus-visible){outline:3px solid var(--accent2); outline-offset:2px}
-  select,button{font:inherit}
-  select{width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px; min-height:44px}
-  .btn{width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:12px 14px; font-weight:650; cursor:pointer; transition:background .15s; min-height:44px}
+  select,button,input,textarea{font:inherit}
+  select,.inp{width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:9px; min-height:42px}
+  .btn{width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:11px 12px; font-weight:650; cursor:pointer; transition:background .15s; min-height:42px}
   .btn:hover{background:#2c7cf0}
   .btn:disabled{background:#21262d; color:var(--muted); cursor:not-allowed}
   .btn.secondary{background:transparent; border:1px solid var(--border); color:var(--text)}
   .btn.secondary:hover{background:rgba(255,255,255,.05)}
+  .btn.sm{min-height:36px; padding:7px 10px; font-size:13px; width:auto}
   .row{display:flex; gap:8px}
-  ul.files{list-style:none; margin:10px 0 0; padding:0; font-size:13px; max-height:160px; overflow:auto}
-  ul.files li{display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid var(--border)}
-  ul.files li:last-child{border-bottom:0}
-  ul.files .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  ul.files .mn{color:var(--ok); font-size:11px; align-self:center}
+  .row.wrap{flex-wrap:wrap}
+  .iconbtn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:7px;min-height:34px;min-width:34px;padding:4px 8px;cursor:pointer;font-size:13px}
+  .iconbtn:hover{background:rgba(255,255,255,.06)}
+
+  /* File tree */
+  .tree{list-style:none; margin:0; padding:0; font-size:13px; overflow:auto; flex:0 0 auto; max-height:42vh}
+  .tree li{margin:0}
+  .tree .node{display:flex; align-items:center; gap:7px; width:100%; text-align:left; background:transparent; border:0; color:var(--text); padding:5px 8px; border-radius:6px; cursor:pointer; min-height:34px}
+  .tree .node:hover{background:rgba(255,255,255,.05)}
+  .tree .node.active{background:rgba(31,111,235,.18)}
+  .tree .node .ico{flex:none; width:16px; text-align:center; color:var(--muted)}
+  .tree .node .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+  .tree .node .tag{font-size:10px; color:var(--ok); border:1px solid var(--border); border-radius:999px; padding:0 6px}
+  .tree .node .tag.raster{color:var(--warn)}
+  .tree .dir > .node .ico{color:var(--accent2)}
+
+  /* Editor tabs + monaco */
+  .editor-tabs{display:flex; align-items:stretch; gap:2px; padding:6px 8px 0; background:var(--panel); border-bottom:1px solid var(--border); overflow:auto}
+  .etab{display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--border); border-bottom:0; border-radius:8px 8px 0 0; background:var(--panel2); color:var(--muted); cursor:pointer; font-size:13px; white-space:nowrap; max-width:220px}
+  .etab.active{background:var(--bg); color:var(--text)}
+  .etab .x{border:0;background:transparent;color:inherit;cursor:pointer;padding:0 2px;border-radius:4px}
+  .etab .x:hover{background:rgba(255,255,255,.1)}
+  .etab .dirty{color:var(--warn)}
+  #monaco{flex:1; min-height:0; width:100%}
+  .editor-empty{flex:none;color:var(--muted);padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+  #fallbackEditor{flex:1;width:100%;border:0;resize:none;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;padding:12px;line-height:1.55;outline:none}
+  .problems{border-top:1px solid var(--border); max-height:34%; overflow:auto; background:var(--panel2)}
+  .problems-head{display:flex;align-items:center;gap:10px;padding:6px 10px;position:sticky;top:0;background:var(--panel2);border-bottom:1px solid var(--border);flex-wrap:wrap;z-index:1}
+  .problems-head h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .ptabs{display:flex;gap:4px;flex-wrap:wrap}
+  .ptabs button{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer;min-height:30px}
+  .ptabs button[aria-selected="true"]{background:rgba(31,111,235,.16);color:var(--text);border-color:var(--accent);font-weight:650}
+  .ptabs button span{opacity:.85;font-variant-numeric:tabular-nums}
+  .problems ul{list-style:none;margin:0;padding:4px 0}
+  .problems li{display:flex;gap:9px;padding:5px 12px;font-size:12.5px;cursor:pointer;align-items:flex-start}
+  .problems li:hover{background:rgba(255,255,255,.05)}
+  .problems .sev{flex:none;font-weight:700;min-width:54px}
+  .problems .sev.error{color:var(--err)} .problems .sev.warn{color:var(--warn)} .problems .sev.info{color:var(--accent2)}
+  .problems .msg{flex:1} .problems .loc{color:var(--muted);flex:none}
+  .problems .none{padding:10px 12px;color:var(--muted);font-size:12.5px}
+
+  /* Preview */
+  #viewer{flex:1; overflow:auto; background:#525659; padding:16px; min-height:240px}
+  #viewer canvas{display:block; margin:0 auto 16px; box-shadow:0 2px 12px rgba(0,0,0,.5); max-width:100%; height:auto; background:#fff}
+  #viewer .empty{color:#e6e9ec; text-align:center; margin-top:60px; font-size:14px}
+  .preview-bar{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--panel)}
+
   .status{display:flex; align-items:center; gap:10px; font-size:14px}
   .dot{width:9px; height:9px; border-radius:50%; background:var(--muted); flex:none}
   .dot.busy{background:var(--warn)} .dot.ok{background:var(--ok)} .dot.err{background:var(--err)}
@@ -74,294 +218,817 @@
   @keyframes slide{0%{margin-left:-40%}100%{margin-left:100%}}
   .pmeta{display:flex; justify-content:space-between; font-size:12px; color:var(--muted)}
   .note{font-size:12px; color:var(--muted)}
+  .warnchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--warn);background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.4);border-radius:7px;padding:5px 9px;margin-top:8px}
   details.help{border:1px solid var(--border); border-radius:8px; background:transparent}
   details.help summary{cursor:pointer; padding:8px 10px; font-size:13px; color:var(--accent2)}
   details.help div{padding:0 10px 10px; font-size:13px; color:var(--muted)}
-  details.help th{color:var(--text); text-align:left; padding-right:14px}
+  details.help th{color:var(--text); text-align:left; padding-right:14px; vertical-align:top}
   details.help td{padding-right:14px; vertical-align:top}
-  #viewer{flex:1; overflow:auto; border:1px solid var(--border); border-radius:var(--radius); background:#525659; padding:18px; min-height:240px}
-  #viewer canvas{display:block; margin:0 auto 16px; box-shadow:0 2px 12px rgba(0,0,0,.5); max-width:100%; height:auto; background:#fff}
-  #viewer .empty{color:#e6e9ec; text-align:center; margin-top:60px; font-size:14px}
-  details.log{border:1px solid var(--border); border-radius:8px; background:var(--panel2)}
+  details.log{border:1px solid var(--border); border-radius:8px; background:var(--panel2); margin:12px}
   details.log summary{cursor:pointer; padding:8px 12px; font-size:13px; color:var(--muted)}
-  pre.log{margin:0; padding:12px; max-height:260px; overflow:auto; font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; color:#cdd6e0; border-top:1px solid var(--border)}
-  footer{border-top:1px solid var(--border); padding:10px 20px; font-size:12px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between}
+  pre.log{margin:0; padding:12px; max-height:240px; overflow:auto; font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; color:#cdd6e0; border-top:1px solid var(--border)}
+
+  /* Modal */
+  .modal[hidden]{display:none}
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:18px; z-index:40}
+  .modal-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px; width:min(520px,100%); max-height:90vh; overflow:auto; display:flex; flex-direction:column; gap:12px}
+  .modal-card h2{margin:0; font-size:16px}
+  .field{display:flex; flex-direction:column; gap:5px}
+  .field label{font-size:12px; color:var(--muted)}
+  .modal-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:4px}
+
+  /* About / SEO content */
+  .about{border-top:1px solid var(--border); padding:26px 20px; background:var(--panel); color:var(--text)}
+  .about-inner{max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:14px}
+  .about h2{font-size:18px; margin:0}
+  .about h3{font-size:15px; margin:14px 0 4px}
+  .about p{margin:0; color:var(--muted); font-size:14px}
+  .about ul{margin:4px 0; padding-left:20px; color:var(--muted); font-size:14px}
+  .about details{border:1px solid var(--border); border-radius:8px; padding:0}
+  .about details summary{cursor:pointer; padding:10px 12px; font-weight:650; font-size:14px}
+  .about details p{padding:0 12px 12px}
+
+  footer{border-top:1px solid var(--border); padding:10px 20px; font-size:12px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; background:var(--panel)}
+
+  @media (max-width:980px){
+    body{height:auto}
+    .appshell{height:auto}
+    .mtabs{display:flex}
+    .workspace, body.mode-view .workspace{grid-template-columns:1fr}
+    .panel{border-right:0; border-bottom:1px solid var(--border); display:none}
+    .panel.active{display:flex; min-height:60vh}
+    .panel.editor.active{min-height:70vh}
+  }
   @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
 </style>
 </head>
-<body>
-<a class="skip" href="#main">Skip to preview</a>
-<nav class="topnav">
-  <a class="brand" href="index.html">TeX Viewer Online</a>
+<body class="mode-editor">
+<a class="skip" href="#main">Skip to editor</a>
+<div class="appshell">
+<nav class="topnav" aria-label="Tools">
+  <a class="brand" href="index.html">TeX Editor Online</a>
   <div class="links">
     <a href="index.html" class="active" aria-current="page">TeX to PDF</a>
     <a href="html/md2pdf.html">MD to PDF</a>
     <a href="html/beautify.html">Beautify</a>
-    <a href="html/diff.html">Compare</a>
+    <a href="html/diff.html">File Compare</a>
     <a href="html/imgcompare.html">Image Compare</a>
     <a href="html/pdfunlock.html">PDF Unlock</a>
     <a href="html/cyberchef.html">CyberChef</a>
   </div>
 </nav>
-<header>
-  <h1>TeX Viewer Online <span class="pill">in-browser</span></h1>
-  <span class="sub">View your TeX documents in any browser, no software needed. Compiles locally with WebAssembly; nothing is uploaded.</span>
+<header class="head">
+  <h1>TeX Editor Online <span class="pill">in-browser</span></h1>
+  <span class="sub">Edit and compile LaTeX to accessible, vector-graphics PDFs, or just view an existing .tex. Everything runs locally; nothing is uploaded.</span>
+  <div class="modes" role="group" aria-label="Mode">
+    <button type="button" id="modeEditor" aria-pressed="true">Editor</button>
+    <button type="button" id="modeView" aria-pressed="false">Quick View</button>
+  </div>
 </header>
 
-<div class="wrap">
-  <aside class="side" aria-label="Controls">
-    <div class="card">
-      <p class="label">1. Engine</p>
-      <div class="seg" role="radiogroup" aria-label="LaTeX engine">
-        <label><input type="radio" name="engine" value="xetex" checked> XeLaTeX</label>
-        <label><input type="radio" name="engine" value="pdftex"> pdfLaTeX</label>
-      </div>
-      <details class="help" style="margin-top:10px">
-        <summary>Which one should I choose?</summary>
-        <div>
-          <p style="margin:.4em 0">Not sure? Keep <strong>XeLaTeX</strong> (the default). In this in-browser engine it handles fonts most reliably.</p>
-          <table>
-            <tr><th>XeLaTeX</th><td>Recommended default. Uses vector fonts directly, supports system or OpenType fonts (<code>fontspec</code>) and full Unicode.</td></tr>
-            <tr><th>pdfLaTeX</th><td>Slightly faster, but it can fail when a document needs a bitmap font it has to build on the fly, which is not possible here. If you get a font error, switch to XeLaTeX.</td></tr>
-          </table>
-        </div>
-      </details>
-    </div>
+<div class="mtabs" role="tablist" aria-label="Panels">
+  <button role="tab" id="tabFiles" aria-selected="false" aria-controls="panelFiles">Files</button>
+  <button role="tab" id="tabEditor" aria-selected="true" aria-controls="panelEditor" class="editor-only">Editor</button>
+  <button role="tab" id="tabPreview" aria-selected="false" aria-controls="panelPreview">Preview</button>
+</div>
 
-    <div class="card">
-      <p class="label" id="filesLabel">2. Files</p>
+<div class="workspace">
+  <!-- FILES PANEL -->
+  <aside class="panel files" id="panelFiles" role="region" aria-label="Files and actions">
+    <div class="panel-head">
+      <h2>Files</h2>
+      <span class="spacer" style="flex:1"></span>
+      <div class="row editor-only">
+        <button class="iconbtn" id="newFileBtn" title="New file" aria-label="New file">+ File</button>
+        <button class="iconbtn" id="uploadBtn" title="Upload files" aria-label="Upload files">Upload</button>
+      </div>
+    </div>
+    <div class="panel-body">
       <button type="button" class="drop" id="drop" aria-describedby="dropHint">
         <strong>Drop files here</strong> or click to choose<br>
         <span class="note" id="dropHint">A single .tex, several files (images, .bib, .cls), or a .zip project</span>
       </button>
-      <input type="file" id="fileInput" multiple aria-labelledby="filesLabel"
-             accept=".tex,.bib,.cls,.sty,.ltx,.def,.clo,.bbl,.txt,.zip,.png,.jpg,.jpeg,.gif,.pdf,.eps" hidden>
-      <ul class="files" id="fileList" aria-live="polite"></ul>
-    </div>
+      <input type="file" id="fileInput" multiple aria-label="Choose files"
+             accept=".tex,.bib,.cls,.sty,.ltx,.def,.clo,.bbl,.txt,.svg,.pdf,.eps,.zip,.png,.jpg,.jpeg,.gif,.bmp" hidden>
 
-    <div class="card" id="mainCard" style="display:none">
-      <label class="label" for="mainSelect">3. Main file</label>
-      <select id="mainSelect"></select>
-      <p class="note" style="margin:8px 0 0">The .tex file with <code>\documentclass</code> that starts the document.</p>
-    </div>
+      <ul class="tree" id="tree" aria-label="Project files"></ul>
+      <p class="note" id="treeEmpty">No files yet. Start from a template, drop a file, or clone a repo.</p>
 
-    <div class="card" id="liveCard">
-      <p class="label">Live edit with VS Code</p>
-      <div class="row">
-        <button class="btn secondary" id="openFolderBtn" type="button" style="flex:1">Open a folder</button>
-        <button class="btn secondary" id="vscodeBtn" type="button" style="flex:1">Open VS Code</button>
-      </div>
-      <label class="note" style="display:flex; align-items:center; gap:7px; margin-top:10px; cursor:pointer">
-        <input type="checkbox" id="autoCompile" checked style="width:16px;height:16px"> Auto-compile when a file is saved
-      </label>
-      <p class="note" id="liveStatus" style="margin-top:8px" aria-live="polite"></p>
-      <p class="note" id="liveUnsupported" hidden>Live folder needs Chrome or Edge. You can still upload files above.</p>
-      <details class="help" style="margin-top:10px">
-        <summary>How the live workflow works</summary>
-        <div>
-          <p style="margin:.4em 0">Click <strong>Open a folder</strong> and choose your project folder. Then open the <em>same</em> folder in VS Code (use the Open VS Code button, then File, Open Folder in vscode.dev).</p>
-          <p style="margin:.4em 0">Edit and save in VS Code. This tool watches the folder and rebuilds the PDF automatically on each save.</p>
+      <fieldset class="card editor-only" style="border:1px solid var(--border)">
+        <legend>Templates</legend>
+        <select id="templateSelect" aria-label="Insert template">
+          <option value="">Start from a template...</option>
+          <option value="article">Accessible article (tagged PDF)</option>
+          <option value="report">Modular report (\\include)</option>
+          <option value="math">Math + theorems (amsmath, cleveref)</option>
+          <option value="beamer">Beamer slides</option>
+          <option value="cv">CV / resume</option>
+          <option value="bib">references.bib (BibLaTeX)</option>
+          <optgroup label="Publisher styles (class fetched on compile)">
+            <option value="ieee">IEEE (IEEEtran, conference)</option>
+            <option value="acm">ACM (acmart, sigconf)</option>
+            <option value="springer">Springer (LNCS, llncs)</option>
+            <option value="mdpi">MDPI (mdpi)</option>
+            <option value="elsevier">Elsevier (elsarticle)</option>
+          </optgroup>
+        </select>
+      </fieldset>
+
+      <fieldset class="card">
+        <legend>Engine</legend>
+        <div class="seg" role="radiogroup" aria-label="LaTeX engine">
+          <label><input type="radio" name="engine" value="xetex" checked> XeLaTeX</label>
+          <label><input type="radio" name="engine" value="pdftex"> pdfLaTeX</label>
+          <label><input type="radio" name="engine" value="luatex"> LuaLaTeX</label>
         </div>
-      </details>
-    </div>
+        <label class="note" style="display:flex;align-items:center;gap:7px;margin-top:10px;cursor:pointer">
+          <input type="checkbox" id="biberFix" checked style="width:16px;height:16px;flex:none">
+          <span>biblatex: route to bibtex8 (the in-browser engine has no biber)</span>
+        </label>
+        <div class="card editor-only" id="mainCard" style="display:none; margin-top:10px; background:transparent; border:0; padding:0">
+          <label class="label" for="mainSelect">Main file</label>
+          <select id="mainSelect"></select>
+          <p class="note" style="margin:6px 0 0">The .tex file with <code>\documentclass</code>.</p>
+        </div>
+        <details class="help" style="margin-top:10px">
+          <summary>Which engine should I choose?</summary>
+          <div>
+            <table>
+              <tr><th>XeLaTeX</th><td>Recommended default. Vector fonts, <code>fontspec</code>, full Unicode.</td></tr>
+              <tr><th>pdfLaTeX</th><td>Fast and classic. May fail if a document needs a bitmap font it must build on the fly.</td></tr>
+              <tr><th>LuaLaTeX</th><td>Best support for the modern tagging code used for accessible PDF/UA output.</td></tr>
+            </table>
+          </div>
+        </details>
+      </fieldset>
 
-    <div class="row">
-      <button class="btn" id="compileBtn" disabled>Compile to PDF</button>
-      <button class="btn secondary" id="resetBtn" title="Clear everything" style="width:auto;padding-left:16px;padding-right:16px">Reset</button>
-    </div>
+      <div class="row">
+        <button class="btn" id="compileBtn" disabled>Compile to PDF</button>
+        <button class="btn secondary sm" id="resetBtn" title="Clear everything">Reset</button>
+      </div>
 
-    <div class="progress" id="progress" hidden aria-hidden="true">
-      <div class="ptrack"><div class="pfill" id="pfill" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-      <div class="pmeta"><span id="pLabel">Working...</span><span id="elapsed">0.0s</span></div>
-    </div>
+      <div class="row editor-only">
+        <button class="btn secondary sm" id="gitBtn" style="flex:1">Git: clone / push</button>
+        <button class="btn secondary sm" id="downloadZipBtn" style="flex:1" title="Download project as zip">Save .zip</button>
+      </div>
 
-    <div class="status" role="status" aria-live="polite" id="status">
-      <span class="dot" id="dot" aria-hidden="true"></span>
-      <span id="statusText">Idle. Add a .tex file to begin.</span>
-    </div>
+      <fieldset class="card editor-only" id="liveCard" style="border:1px solid var(--border)">
+        <legend>Live edit with VS Code</legend>
+        <div class="row">
+          <button class="btn secondary sm" id="openFolderBtn" type="button" style="flex:1">Open a folder</button>
+          <button class="btn secondary sm" id="vscodeBtn" type="button" style="flex:1">Open VS Code</button>
+        </div>
+        <label class="note" style="display:flex; align-items:center; gap:7px; margin-top:10px; cursor:pointer">
+          <input type="checkbox" id="autoCompile" checked style="width:16px;height:16px"> Auto-compile on save
+        </label>
+        <p class="note" id="liveStatus" style="margin-top:8px" aria-live="polite"></p>
+        <p class="note" id="liveUnsupported" hidden>Live folder needs Chrome or Edge. You can still upload files.</p>
+      </fieldset>
 
-    <p class="note">First compile loads the engine and a bundled TeX Live (about 125 MB), cached by your browser afterward, so later compiles are quick. Everything runs locally with no server. A desktop browser is recommended for the first load.</p>
+      <div class="progress" id="progress" hidden aria-hidden="true">
+        <div class="ptrack"><div class="pfill" id="pfill" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+        <div class="pmeta"><span id="pLabel">Working...</span><span id="elapsed">0.0s</span></div>
+      </div>
+      <div class="status" role="status" aria-live="polite" id="status">
+        <span class="dot" id="dot" aria-hidden="true"></span>
+        <span id="statusText">Idle. Add or create a .tex file to begin.</span>
+      </div>
+      <p class="note">First compile loads the engine and TeX Live (about 125 MB), cached by your browser afterward. Everything runs locally with no server.</p>
+    </div>
   </aside>
 
-  <main class="main" id="main">
-    <div class="row" style="align-items:center; justify-content:space-between">
-      <div class="status">
-        <strong style="font-weight:650">Preview</strong>
-        <span class="note" id="pageInfo"></span>
+  <!-- EDITOR PANEL -->
+  <section class="panel editor editor-only active" id="panelEditor" role="region" aria-label="LaTeX editor">
+    <div class="editor-tabs" id="editorTabs" role="tablist" aria-label="Open files"></div>
+    <div id="monaco" aria-label="LaTeX source editor"></div>
+    <textarea id="fallbackEditor" spellcheck="false" hidden aria-label="LaTeX source editor (fallback)"></textarea>
+    <div class="editor-empty" id="editorEmpty">Open a file from the Files panel, or start from a template.</div>
+    <div class="problems" id="problems" aria-label="Best-practice problems">
+      <div class="problems-head">
+        <h3>Problems</h3>
+        <div class="ptabs" role="tablist" aria-label="Filter problems">
+          <button type="button" role="tab" id="pfAll" aria-selected="true">All <span id="cAll">0</span></button>
+          <button type="button" role="tab" id="pfErr" aria-selected="false">Errors <span id="cErr">0</span></button>
+          <button type="button" role="tab" id="pfWarn" aria-selected="false">Warnings <span id="cWarn">0</span></button>
+          <button type="button" role="tab" id="pfHint" aria-selected="false">Hints <span id="cHint">0</span></button>
+        </div>
       </div>
-      <button class="btn" id="downloadBtn" disabled style="width:auto; padding-left:18px; padding-right:18px">Download PDF</button>
+      <ul id="problemsList"><li class="none">No file open. Best-practice checks appear here as you edit.</li></ul>
+    </div>
+  </section>
+
+  <!-- PREVIEW PANEL -->
+  <section class="panel preview" id="panelPreview" role="region" aria-label="PDF preview">
+    <div class="preview-bar">
+      <strong style="font-weight:650">Preview</strong>
+      <span class="note" id="pageInfo"></span>
+      <span class="spacer" style="flex:1"></span>
+      <button class="btn sm" id="downloadBtn" disabled>Download PDF</button>
     </div>
     <div id="viewer" tabindex="0" aria-label="PDF preview"><div class="empty">Your compiled PDF will appear here.</div></div>
     <details class="log" id="logBox">
       <summary>Compilation log</summary>
       <pre class="log" id="log">No log yet.</pre>
     </details>
-  </main>
+  </section>
+</div>
+</div><!-- /appshell -->
+
+<!-- GIT MODAL -->
+<div class="modal" id="gitModal" hidden role="dialog" aria-modal="true" aria-labelledby="gitTitle">
+  <div class="modal-card">
+    <h2 id="gitTitle">Git: GitHub / GitLab</h2>
+    <p class="note">Clone a repository to edit it, then commit and push your changes. Your token is stored only in this browser and is sent only to your Git host over HTTPS.</p>
+    <div class="field">
+      <label for="gitUrl">Repository URL</label>
+      <input class="inp" id="gitUrl" placeholder="https://github.com/user/repo or https://gitlab.com/user/repo">
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1"><label for="gitBranch">Branch</label><input class="inp" id="gitBranch" placeholder="main" value="main"></div>
+      <div class="field" style="flex:1"><label for="gitProxy">CORS proxy</label><input class="inp" id="gitProxy" value="https://cors.isomorphic-git.org"></div>
+    </div>
+    <div class="row">
+      <div class="field" style="flex:1"><label for="gitUser">Username (for push)</label><input class="inp" id="gitUser" placeholder="your-username" autocomplete="off"></div>
+      <div class="field" style="flex:1"><label for="gitToken">Token (PAT)</label><input class="inp" id="gitToken" type="password" placeholder="ghp_... / glpat-..." autocomplete="off"></div>
+    </div>
+    <div class="field">
+      <label for="gitMsg">Commit message (for push)</label>
+      <input class="inp" id="gitMsg" placeholder="Update from TeX Editor Online" value="Update from TeX Editor Online">
+    </div>
+    <p class="note" id="gitStatus" aria-live="polite"></p>
+    <div class="modal-actions">
+      <button class="btn secondary sm" id="gitCloneBtn">Clone</button>
+      <button class="btn secondary sm" id="gitPushBtn">Commit &amp; Push</button>
+      <button class="btn sm" id="gitCloseBtn">Close</button>
+    </div>
+  </div>
 </div>
 
+<!-- ABOUT / SEO / AEO -->
+<section class="about" aria-label="About TeX Editor Online">
+  <div class="about-inner">
+    <h2>A free, private LaTeX editor that runs in your browser</h2>
+    <p>TeX Editor Online is a free and open-source LaTeX editor and viewer. It compiles your document to PDF locally with WebAssembly, so your source and output stay on your device and are never uploaded. Use the full editor to write accessible, vector-graphics PDFs with best-practice linting, or switch to Quick View to turn an existing <code>.tex</code> file into a PDF in a few clicks.</p>
+    <h3>What it does</h3>
+    <ul>
+      <li>Three-panel editor: file tree, a VS Code editor, and a live PDF preview.</li>
+      <li>Compiles with XeLaTeX, pdfLaTeX, or LuaLaTeX, fully in the browser.</li>
+      <li>Produces tagged, accessible PDFs (PDF/UA) when you use the bundled templates.</li>
+      <li>Encourages vector graphics (SVG, PDF, EPS) and flags raster images.</li>
+      <li>Connects to GitHub and GitLab to clone, commit, and push.</li>
+      <li>Syncs with a local folder so you can keep editing in desktop VS Code.</li>
+    </ul>
+    <h3>Frequently asked questions</h3>
+    <details><summary>Is it really free, with no account?</summary><p>Yes. It is free and open source under AGPL-3.0, with no sign-up and no installation.</p></details>
+    <details><summary>Is my document private?</summary><p>Yes. Compilation runs locally in your browser. Your TeX source and PDF are never sent to a server.</p></details>
+    <details><summary>How do I get an accessible, tagged PDF?</summary><p>Begin the document with <code>\DocumentMetadata{pdfstandard=ua-2, lang=en-US, testphase={phase-III}}</code>. The built-in templates already do this, producing structure tags for screen readers.</p></details>
+    <details><summary>Why does it prefer vector images?</summary><p>Vector formats (SVG, PDF, EPS) stay sharp at any size and print cleanly. The editor flags raster images such as PNG and JPEG and suggests a vector alternative.</p></details>
+  </div>
+</section>
+
 <footer>
-  <span>Runs fully client side. Powered by busytex (TeX Live in WebAssembly) and PDF.js.</span>
+  <span>Runs fully client side. Powered by busytex (TeX Live in WebAssembly), Monaco, isomorphic-git, and PDF.js.</span>
   <span>No tracking. No file uploads to any server.</span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@isomorphic-git/lightning-fs@4.6.0/dist/lightning-fs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/isomorphic-git@1.27.1/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/isomorphic-git@1.27.1/http/web/index.umd.js"></script>
+<script>window.MonacoEnvironment = { getWorkerUrl: function(){ return 'data:text/javascript;charset=utf-8,' + encodeURIComponent("self.MonacoEnvironment={baseUrl:'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/'};importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/base/worker/workerMain.js');"); } };</script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
 <script type="module">
-import { BusyTexRunner, PdfLatex, XeLatex } from "./core/texlyre-busytex.js";
+import { BusyTexRunner, PdfLatex, XeLatex, LuaLatex } from "./core/texlyre-busytex.js";
+if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js"; }
 
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+/* ====== P1: STATE + VIRTUAL FILESYSTEM + FILE TREE ====== */
+const $ = (id) => document.getElementById(id);
+const TEXT_RE = /\.(tex|latex|bib|cls|sty|ltx|def|clo|bbl|aux|txt|md|tikz|sub|cfg|fd|enc|map|json|csv|bst)$/i;
+const TEX_RE  = /\.(tex|latex|ltx)$/i;
+const RASTER_RE = /\.(png|jpe?g|gif|bmp|tiff?|webp)$/i;
+const VECTOR_RE = /\.(svg|pdf|eps)$/i;
+
+const state = {
+  files: [],          // { path, bytes:Uint8Array, isText }
+  mainFile: null,
+  activePath: null,   // file currently shown in editor
+  openOrder: [],      // tab order of open file paths
+  models: new Map(),  // path -> monaco model
+  dirty: new Set(),   // paths with unsaved edits (kept in model, synced on compile)
+  lastPdf: null,
+  compiling: false,
+};
+
+function decode(bytes){ return new TextDecoder("utf-8").decode(bytes); }
+function encode(text){ return new TextEncoder().encode(text); }
+function isTextPath(p){ return TEXT_RE.test(p); }
+function cleanPath(p){ return p.replace(/\\/g,"/").replace(/^\.?\//,"").replace(/^\/+/,""); }
+function baseName(p){ return p.replace(/.*\//,""); }
+function getFile(path){ return state.files.find(f => f.path === path); }
+
+function upsertFile(path, bytes){
+  path = cleanPath(path);
+  if (/(^|\/)__MACOSX\//.test(path) || /(^|\/)\.DS_Store$/.test(path)) return null;
+  const isText = isTextPath(path);
+  const existing = getFile(path);
+  if (existing){ existing.bytes = bytes; existing.isText = isText; }
+  else state.files.push({ path, bytes, isText });
+  return path;
+}
+function removeFile(path){
+  state.files = state.files.filter(f => f.path !== path);
+  closeTab(path);
+  if (state.mainFile === path) state.mainFile = null;
+}
+function renameFile(oldPath, newPath){
+  newPath = cleanPath(newPath);
+  const f = getFile(oldPath); if (!f) return;
+  if (getFile(newPath) && newPath !== oldPath){ setStatus("A file named " + newPath + " already exists.", "err"); return; }
+  // pull latest text from an open model before renaming
+  syncModelToFile(oldPath);
+  f.path = newPath; f.isText = isTextPath(newPath);
+  if (state.models.has(oldPath)){ const m = state.models.get(oldPath); state.models.delete(oldPath); state.models.set(newPath, m); }
+  if (state.activePath === oldPath) state.activePath = newPath;
+  state.openOrder = state.openOrder.map(p => p === oldPath ? newPath : p);
+  if (state.mainFile === oldPath) state.mainFile = newPath;
+  refreshAll();
+  if (state.activePath === newPath) openInEditor(newPath);
 }
 
-const $ = (id) => document.getElementById(id);
-const drop=$("drop"), fileInput=$("fileInput"), fileListEl=$("fileList");
-const mainCard=$("mainCard"), mainSelect=$("mainSelect");
-const compileBtn=$("compileBtn"), resetBtn=$("resetBtn"), downloadBtn=$("downloadBtn");
-const dot=$("dot"), statusText=$("statusText");
-const viewer=$("viewer"), logEl=$("log"), logBox=$("logBox"), pageInfo=$("pageInfo");
-const progress=$("progress"), pfill=$("pfill"), pLabel=$("pLabel"), elapsedEl=$("elapsed");
+// ---- raster vs vector image policy ----
+function rasterFiles(){ return state.files.filter(f => RASTER_RE.test(f.path)); }
+function updateRasterWarning(){
+  const chip = $("rasterWarn");
+  if (chip) chip.remove();
+  const rasters = rasterFiles();
+  if (!rasters.length) return;
+  const el = document.createElement("div");
+  el.className = "warnchip"; el.id = "rasterWarn";
+  el.innerHTML = "&#9888; Raster image" + (rasters.length>1?"s":"") + " detected (" +
+    rasters.map(f=>baseName(f.path)).join(", ") + "). Prefer vector (SVG, PDF, EPS) for sharp, accessible output.";
+  const host = $("tree"); host.parentNode.insertBefore(el, host.nextSibling);
+}
 
+// ---- main-file detection ----
+function pickMain(texFiles){
+  if (!texFiles.length) return null;
+  const named = texFiles.find(p => /(^|\/)main\.(tex|ltx|latex)$/i.test(p));
+  if (named) return named;
+  for (const p of texFiles){ const f = getFile(p); if (f && f.isText && decode(f.bytes).includes("\\documentclass")) return p; }
+  return texFiles[0];
+}
+
+// ---- file intake ----
+async function addFiles(fileList){
+  let added = [];
+  for (const f of Array.from(fileList)){
+    const buf = new Uint8Array(await f.arrayBuffer());
+    if (/\.zip$/i.test(f.name)){ const z = await addZip(buf); added = added.concat(z); }
+    else { const p = upsertFile(f.name, buf); if (p) added.push(p); }
+  }
+  // If every file sits under one wrapper folder (common in zips), strip it for clean paths
+  if (state.files.length > 1){
+    const tops = new Set(state.files.map(f => f.path.includes("/") ? f.path.split("/")[0] : " "));
+    if (tops.size === 1 && !tops.has(" ")){
+      const pre = [...tops][0] + "/";
+      state.files.forEach(f => { if (f.path.startsWith(pre)) f.path = f.path.slice(pre.length); });
+      added = added.map(p => p.startsWith(pre) ? p.slice(pre.length) : p);
+      state.mainFile = null;
+    }
+  }
+  refreshAll();
+  // make uploaded files immediately browsable: leave Quick View, load the main file
+  // into the editor, but land on the Files list so the user sees every unzipped file
+  const toOpen = state.mainFile || added.find(p => isTextPath(p));
+  if (toOpen){
+    if (document.body.classList.contains("mode-view")) setMode("editor");
+    openInEditor(toOpen);
+    switchPanel("files");
+  }
+  if (added.length) setStatus(added.length + " files loaded. Click any file in the list to edit it.", "ok");
+  return added;
+}
+async function addZip(bytes){
+  const out = [];
+  if (!window.JSZip){ setStatus("Zip support failed to load.", "err"); return out; }
+  try {
+    const zip = await JSZip.loadAsync(bytes);
+    for (const e of Object.values(zip.files)){ if (e.dir) continue; const p = upsertFile(e.name, await e.async("uint8array")); if (p) out.push(p); }
+  } catch(err){ setStatus("Could not read the zip file.", "err"); console.error(err); }
+  return out;
+}
+async function downloadZip(){
+  if (!window.JSZip || !state.files.length) return;
+  syncAllModels();
+  const zip = new JSZip();
+  state.files.forEach(f => zip.file(f.path, f.bytes));
+  const blob = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "tex-project.zip";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+// ---- file tree rendering (nested by folders) ----
+function buildTreeData(){
+  const root = { dirs:{}, files:[] };
+  for (const f of state.files.slice().sort((a,b)=>a.path.localeCompare(b.path))){
+    const parts = f.path.split("/"); let node = root;
+    for (let i=0;i<parts.length-1;i++){ const d = parts[i]; node.dirs[d] = node.dirs[d] || { dirs:{}, files:[] }; node = node.dirs[d]; }
+    node.files.push(f);
+  }
+  return root;
+}
+function renderTree(){
+  const host = $("tree"); host.innerHTML = "";
+  const empty = $("treeEmpty");
+  if (!state.files.length){ empty.hidden = false; return; }
+  empty.hidden = true;
+  const root = buildTreeData();
+  host.appendChild(renderTreeLevel(root, ""));
+  updateRasterWarning();
+}
+function renderTreeLevel(node, prefix){
+  const frag = document.createDocumentFragment();
+  Object.keys(node.dirs).sort().forEach(dir => {
+    const li = document.createElement("li"); li.className = "dir";
+    const btn = document.createElement("div"); btn.className = "node";
+    btn.innerHTML = '<span class="ico" aria-hidden="true">&#128193;</span><span class="nm"></span>';
+    btn.querySelector(".nm").textContent = dir;
+    li.appendChild(btn);
+    const sub = document.createElement("ul"); sub.className = "tree";
+    sub.appendChild(renderTreeLevel(node.dirs[dir], prefix + dir + "/"));
+    li.appendChild(sub);
+    btn.addEventListener("click", ()=>{ sub.style.display = sub.style.display==="none"?"":"none"; });
+    frag.appendChild(li);
+  });
+  node.files.forEach(f => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button"); btn.type="button"; btn.className = "node" + (f.path===state.activePath?" active":"");
+    btn.setAttribute("data-path", f.path);
+    const raster = RASTER_RE.test(f.path), vector = VECTOR_RE.test(f.path);
+    const ico = raster ? "&#128247;" : vector ? "&#128206;" : (TEX_RE.test(f.path) ? "&#128221;" : "&#128196;");
+    btn.innerHTML = '<span class="ico" aria-hidden="true">'+ico+'</span><span class="nm"></span>';
+    btn.querySelector(".nm").textContent = baseName(f.path);
+    btn.title = f.path;
+    if (f.path === state.mainFile){ const t=document.createElement("span"); t.className="tag"; t.textContent="main"; btn.appendChild(t); }
+    else if (raster){ const t=document.createElement("span"); t.className="tag raster"; t.textContent="raster"; btn.appendChild(t); }
+    btn.addEventListener("click", ()=> openInEditor(f.path));
+    btn.addEventListener("contextmenu", (e)=>{ e.preventDefault(); fileMenu(f.path); });
+    li.appendChild(btn);
+    frag.appendChild(li);
+  });
+  return frag;
+}
+function fileMenu(path){
+  const action = prompt('File "'+baseName(path)+'": type "rename", "main", or "delete".', "");
+  if (!action) return;
+  const a = action.trim().toLowerCase();
+  if (a === "delete"){ if (confirm("Delete "+path+"?")){ removeFile(path); refreshAll(); } }
+  else if (a === "rename"){ const np = prompt("New path:", path); if (np && np.trim()) renameFile(path, np.trim()); }
+  else if (a === "main"){ if (TEX_RE.test(path)){ state.mainFile = path; refreshAll(); } else setStatus("Only .tex files can be the main file.", "err"); }
+}
+
+// ---- main-file <select> + compile button state ----
+function refreshMainSelect(){
+  const texFiles = state.files.filter(f => TEX_RE.test(f.path)).map(f=>f.path);
+  if (!texFiles.includes(state.mainFile)) state.mainFile = pickMain(texFiles);
+  const card = $("mainCard"), sel = $("mainSelect");
+  if (texFiles.length > 1){
+    card.style.display = "";
+    sel.innerHTML = "";
+    texFiles.forEach(p => { const o=document.createElement("option"); o.value=p; o.textContent=p; if(p===state.mainFile)o.selected=true; sel.appendChild(o); });
+  } else card.style.display = "none";
+  $("compileBtn").disabled = !state.mainFile || state.compiling;
+}
+function refreshAll(){
+  renderTree();
+  refreshMainSelect();
+  renderTabs();
+  if (state.mainFile) setStatus("Ready. Main file: " + state.mainFile, "");
+  else if (state.files.length) setStatus("No .tex file yet. Create or open one.", "");
+  else setStatus("Idle. Add or create a .tex file to begin.", "");
+}
+
+function setStatus(text, kind){
+  const st = $("statusText"); if (st) st.textContent = text;
+  const dot = $("dot"); if (dot) dot.className = "dot" + (kind ? " " + kind : "");
+}
+
+/* ====== P2: MONACO (VS CODE) EDITOR + LATEX LANGUAGE + LINTER ====== */
+let editor = null, monacoReady = false, pendingOpen = null, lintTimer = null, useTextarea = false, monacoLoadTimer = null;
+
+function enableTextareaFallback(msg){
+  if (useTextarea) return;
+  useTextarea = true; clearTimeout(monacoLoadTimer);
+  const ta = $("fallbackEditor");
+  ta.addEventListener("input", function(){ if (state.activePath){ state.dirty.add(state.activePath); renderTabs(); scheduleLint(); } });
+  if (msg) setStatus(msg + " Using a plain-text editor.", "");
+  const p = pendingOpen || state.activePath; pendingOpen = null;
+  if (p) openInEditor(p);
+}
+
+function initMonaco(){
+  if (!window.require){ enableTextareaFallback("Editor library did not load."); return; }
+  monacoLoadTimer = setTimeout(function(){ if (!monacoReady) enableTextareaFallback("Editor is taking too long to load."); }, 9000);
+  require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs" } });
+  require(["vs/editor/editor.main"], function(){
+    monaco.languages.register({ id: "latex", extensions: [".tex",".ltx",".latex",".sty",".cls",".bib"], aliases: ["LaTeX","latex","TeX"] });
+    monaco.languages.setMonarchTokensProvider("latex", {
+      tokenizer: {
+        root: [
+          [/%.*$/, "comment"],
+          [/\\(begin|end)\b/, "keyword"],
+          [/\\[a-zA-Z@]+/, "type.identifier"],
+          [/\\[^a-zA-Z]/, "type.identifier"],
+          [/\$\$?/, "string"],
+          [/[{}]/, "delimiter.bracket"],
+          [/[\[\]]/, "delimiter.square"],
+          [/&/, "operator"],
+          [/~/, "operator"],
+        ]
+      }
+    });
+    monaco.languages.setLanguageConfiguration("latex", {
+      comments: { lineComment: "%" },
+      brackets: [["{","}"],["[","]"],["(",")"]],
+      autoClosingPairs: [{open:"{",close:"}"},{open:"[",close:"]"},{open:"(",close:")"},{open:"$",close:"$"}],
+      surroundingPairs: [{open:"{",close:"}"},{open:"[",close:"]"},{open:"$",close:"$"}]
+    });
+    editor = monaco.editor.create($("monaco"), {
+      value: "", language: "latex", theme: "vs-dark",
+      automaticLayout: true, minimap: { enabled: false }, fontSize: 14,
+      wordWrap: "on", lineNumbers: "on", renderWhitespace: "selection",
+      scrollBeyondLastLine: false, tabSize: 2, ariaLabel: "LaTeX source editor"
+    });
+    editor.onDidChangeModelContent(() => {
+      if (state.activePath){ state.dirty.add(state.activePath); renderTabs(); scheduleLint(); }
+    });
+    monacoReady = true;
+    clearTimeout(monacoLoadTimer);
+    if (pendingOpen){ const p = pendingOpen; pendingOpen = null; openInEditor(p); }
+  }, function(){ enableTextareaFallback("Editor failed to load from the CDN."); });
+}
+
+function modelFor(path){
+  if (state.models.has(path)) return state.models.get(path);
+  const f = getFile(path); if (!f) return null;
+  const text = f.isText ? decode(f.bytes) : "";
+  const lang = /\.(bib)$/i.test(path) ? "latex" : (TEX_RE.test(path)||/\.(sty|cls|ltx)$/i.test(path) ? "latex" : "plaintext");
+  const uri = monaco.Uri.parse("inmemory:/" + encodeURI(path));
+  let model = monaco.editor.getModel(uri);
+  if (!model) model = monaco.editor.createModel(text, lang, uri);
+  state.models.set(path, model);
+  return model;
+}
+function openInEditor(path){
+  const f = getFile(path); if (!f) return;
+  if (!monacoReady && !useTextarea){ pendingOpen = path; switchPanel("editor"); return; }
+  if (state.activePath && state.activePath !== path) syncModelToFile(state.activePath);
+  if (!f.isText){ // binary (image/pdf): show note, do not load into editor
+    state.activePath = path;
+    if (!state.openOrder.includes(path)) state.openOrder.push(path);
+    $("editorEmpty").hidden = false;
+    $("editorEmpty").textContent = baseName(path) + " is a binary file and is not shown in the text editor.";
+    $("monaco").style.display = "none"; $("fallbackEditor").hidden = true;
+    renderTabs(); renderTree(); switchPanel("editor");
+    return;
+  }
+  $("editorEmpty").hidden = true;
+  state.activePath = path;
+  if (!state.openOrder.includes(path)) state.openOrder.push(path);
+  if (useTextarea){
+    $("monaco").style.display = "none";
+    const ta = $("fallbackEditor"); ta.hidden = false; ta.value = decode(f.bytes);
+  } else {
+    $("monaco").style.display = ""; $("fallbackEditor").hidden = true;
+    editor.setModel(modelFor(path));
+    setTimeout(function(){ try{ editor.layout(); editor.focus(); }catch(e){} }, 30);
+  }
+  renderTabs(); renderTree(); scheduleLint(); switchPanel("editor");
+}
+function closeTab(path){
+  state.openOrder = state.openOrder.filter(p => p !== path);
+  if (state.activePath === path){
+    const next = state.openOrder[state.openOrder.length-1] || null;
+    state.activePath = null;
+    if (next) openInEditor(next);
+    else { if (editor) editor.setModel(monaco.editor.createModel("", "latex")); $("editorEmpty").hidden = false; $("editorEmpty").textContent = "Open a file from the Files panel, or start from a template."; $("monaco").style.display=""; renderProblems([]); }
+  }
+  renderTabs();
+}
+function renderTabs(){
+  const host = $("editorTabs"); if (!host) return;
+  host.innerHTML = "";
+  state.openOrder.forEach(path => {
+    const tab = document.createElement("div"); tab.className = "etab" + (path===state.activePath?" active":""); tab.setAttribute("role","tab");
+    const nm = document.createElement("span"); nm.textContent = baseName(path) + (state.dirty.has(path)?" •":""); if (state.dirty.has(path)) nm.className="dirty";
+    nm.style.cursor="pointer"; nm.addEventListener("click", ()=>openInEditor(path));
+    const x = document.createElement("button"); x.className="x"; x.textContent="×"; x.title="Close"; x.setAttribute("aria-label","Close "+baseName(path));
+    x.addEventListener("click", (e)=>{ e.stopPropagation(); closeTab(path); });
+    tab.appendChild(nm); tab.appendChild(x);
+    host.appendChild(tab);
+  });
+}
+function syncModelToFile(path){
+  if (useTextarea){ if (state.activePath === path){ const f = getFile(path); if (f) f.bytes = encode($("fallbackEditor").value); state.dirty.delete(path); } return; }
+  if (!state.models.has(path)) return;
+  const f = getFile(path); if (!f) return;
+  f.bytes = encode(state.models.get(path).getValue());
+  state.dirty.delete(path);
+}
+function syncAllModels(){ if (useTextarea && state.activePath) syncModelToFile(state.activePath); for (const p of state.models.keys()) syncModelToFile(p); renderTabs(); }
+
+// ---- LaTeX best-practice linter ----
+const ENV_LINEBREAK_OK = /^(tabular\*?|array|matrix|pmatrix|bmatrix|vmatrix|cases|align\*?|aligned|alignat\*?|gather\*?|split|tabularx|longtable|multline\*?|eqnarray\*?|flalign\*?)$/;
+function lintText(text){
+  const problems = [];
+  const lines = text.split("\n");
+  const envStack = [];
+  let inVerbatim = false;
+  for (let i=0;i<lines.length;i++){
+    const ln = lines[i]; const lineNo = i+1;
+    const code = ln.replace(/%.*$/, "");           // strip comments
+    const begin = code.match(/\\begin\{([^}]+)\}/g) || [];
+    begin.forEach(b => { const e=b.match(/\{([^}]+)\}/)[1]; if (/^(verbatim|lstlisting|minted|Verbatim)$/.test(e)) inVerbatim=true; envStack.push(e); });
+    const end = code.match(/\\end\{([^}]+)\}/g) || [];
+    end.forEach(b => { const e=b.match(/\{([^}]+)\}/)[1]; if (/^(verbatim|lstlisting|minted|Verbatim)$/.test(e)) inVerbatim=false; const idx=envStack.lastIndexOf(e); if(idx>=0) envStack.splice(idx,1); });
+    if (inVerbatim) continue;
+    const curEnv = envStack[envStack.length-1] || "";
+
+    let m;
+    // inline $...$  ->  \(...\)
+    const dollar = /(^|[^\\$])\$(?!\$)([^$]*)\$/g;
+    while ((m = dollar.exec(code))){ const col = m.index + m[1].length + 1; problems.push({sev:"info", line:lineNo, col, endCol:col+1, msg:"Use \\( ... \\) instead of $ ... $ for inline math (semantic, robust)."}); }
+    // $$ ... $$  ->  \[ \] or equation
+    if (/\$\$/.test(code)){ const col = code.indexOf("$$")+1; problems.push({sev:"warn", line:lineNo, col, endCol:col+2, msg:"Avoid $$ ... $$. Use \\[ ... \\] or an equation/align environment for display math."}); }
+    // eqnarray -> align
+    if (/\\begin\{eqnarray\*?\}/.test(code)){ const col = code.indexOf("eqnarray")+1; problems.push({sev:"warn", line:lineNo, col, endCol:col+8, msg:"eqnarray is deprecated and spaces poorly. Use the align environment (amsmath)."}); }
+    // raster includegraphics -> vector only
+    const inc = /\\includegraphics(\[[^\]]*\])?\{([^}]+)\}/g;
+    while ((m = inc.exec(code))){ const file = m[2]; if (RASTER_RE.test(file) || (!VECTOR_RE.test(file) && rasterFiles().some(rf=>rf.path.includes(file)))){ const col = m.index+1; problems.push({sev:"error", line:lineNo, col, endCol:col+m[0].length, msg:"Raster image \""+file+"\". Use a vector format (SVG, PDF, EPS) for accessible, scalable output."}); } }
+    // straight double quotes -> curly
+    const sq = /"([^"]{0,80})"/g;
+    while ((m = sq.exec(code))){ const col=m.index+1; problems.push({sev:"info", line:lineNo, col, endCol:col+1, msg:"Use ``...'' for proper LaTeX curly quotes instead of straight \" quotes."}); }
+    // \ref -> \cref
+    const ref = /(^|[^a-zA-Z@\\])\\ref\{/g;
+    while ((m = ref.exec(code))){ const col=m.index+m[1].length+1; problems.push({sev:"info", line:lineNo, col, endCol:col+4, msg:"Prefer \\cref{...} (cleveref) so the reference type (Figure, Equation) is added automatically."}); }
+    // \label without conventional prefix
+    const lab = /\\label\{([^}]+)\}/g;
+    while ((m = lab.exec(code))){ const key=m[1]; if (!/^(fig|tab|eq|sec|subsec|cha|chap|lst|alg|thm|lem|def|app|itm|fn):/.test(key)){ const col=m.index+1; problems.push({sev:"info", line:lineNo, col, endCol:col+m[0].length, msg:"Prefix labels by type, e.g. \\label{fig:...}, {eq:...}, {sec:...}, {tab:...}."}); } }
+    // \def -> \newcommand
+    const def = /(^|[^a-zA-Z@\\])\\def\b/g;
+    while ((m = def.exec(code))){ const col=m.index+m[1].length+1; problems.push({sev:"info", line:lineNo, col, endCol:col+4, msg:"Prefer \\newcommand over \\def for safer, checkable macro definitions."}); }
+    // manual \\ line break in body text (outside table/math envs)
+    if (!ENV_LINEBREAK_OK.test(curEnv)){
+      const br = /\\\\(\[[^\]]*\])?\s*$/;
+      if (br.test(code.trimEnd()) && code.trim() !== "\\\\"){ const col = code.lastIndexOf("\\\\")+1; problems.push({sev:"warn", line:lineNo, col, endCol:col+2, msg:"Avoid forced line breaks (\\\\) in body text. Use a blank line for a new paragraph and let LaTeX handle spacing."}); }
+    }
+    // obsolete packages
+    const pkg = /\\usepackage(\[[^\]]*\])?\{([^}]+)\}/g;
+    while ((m = pkg.exec(code))){ m[2].split(",").map(s=>s.trim()).forEach(p=>{ if (/^(a4wide|epsf|psfig|times|mathptmx|t1enc|fancyheadings|umlaut|doublespace|subfigure|caption2)$/.test(p)){ const col=m.index+1; problems.push({sev:"warn", line:lineNo, col, endCol:col+m[0].length, msg:"Package \""+p+"\" is obsolete or discouraged. See LaTeX best-practice guides for a modern replacement."}); } }); }
+  }
+  // document-level: accessibility tagging hint
+  if (/\\documentclass/.test(text) && !/\\DocumentMetadata/.test(text)){
+    const idx = lines.findIndex(l=>/\\documentclass/.test(l));
+    problems.push({sev:"info", line:Math.max(1,idx+1), col:1, endCol:14, msg:"For an accessible, tagged PDF add \\DocumentMetadata{pdfstandard=ua-2, lang=en-US, testphase={phase-III}} before \\documentclass."});
+  }
+  return problems;
+}
+function scheduleLint(){ clearTimeout(lintTimer); lintTimer = setTimeout(runLint, 350); }
+function runLint(){
+  let path = state.activePath || "", text = null;
+  if (useTextarea){ text = $("fallbackEditor").value; }
+  else { if (!monacoReady || !editor) return; const m0 = editor.getModel(); if (!m0) return; text = m0.getValue(); }
+  const isTex = TEX_RE.test(path) || /\.(sty|cls|ltx)$/i.test(path);
+  if (!isTex){ if (!useTextarea && editor){ const m = editor.getModel(); if (m) monaco.editor.setModelMarkers(m, "tex-lint", []); } renderProblems([]); return; }
+  const problems = lintText(text);
+  if (!useTextarea && editor){
+    const model = editor.getModel();
+    const sevMap = { error: monaco.MarkerSeverity.Error, warn: monaco.MarkerSeverity.Warning, info: monaco.MarkerSeverity.Info };
+    monaco.editor.setModelMarkers(model, "tex-lint", problems.map(p => ({
+      severity: sevMap[p.sev], message: p.msg,
+      startLineNumber: p.line, startColumn: p.col, endLineNumber: p.line, endColumn: p.endCol || (p.col+1)
+    })));
+  }
+  renderProblems(problems);
+}
+let lastProblems = [], problemFilter = "all";
+function renderProblems(problems){
+  lastProblems = problems || [];
+  const e = lastProblems.filter(p=>p.sev==="error").length;
+  const w = lastProblems.filter(p=>p.sev==="warn").length;
+  const h = lastProblems.length - e - w;
+  const set=(id,v)=>{ const el=$(id); if(el) el.textContent=v; };
+  set("cAll", lastProblems.length); set("cErr", e); set("cWarn", w); set("cHint", h);
+  paintProblems();
+}
+function paintProblems(){
+  const list = $("problemsList"); if(!list) return;
+  list.innerHTML = "";
+  let items = lastProblems;
+  if (problemFilter==="error") items = items.filter(p=>p.sev==="error");
+  else if (problemFilter==="warn") items = items.filter(p=>p.sev==="warn");
+  else if (problemFilter==="info") items = items.filter(p=>p.sev==="info");
+  if (!items.length){ list.innerHTML = '<li class="none">' + (lastProblems.length ? "Nothing in this filter." : "No best-practice issues found.") + '</li>'; return; }
+  items.slice(0, 500).forEach(p => {
+    const li = document.createElement("li");
+    const sev = document.createElement("span"); sev.className = "sev " + (p.sev==="warn"?"warn":p.sev); sev.textContent = p.sev==="warn"?"warning":p.sev;
+    const msg = document.createElement("span"); msg.className="msg"; msg.textContent = p.msg;
+    const loc = document.createElement("span"); loc.className="loc"; loc.textContent = "Ln " + p.line;
+    li.appendChild(sev); li.appendChild(msg); li.appendChild(loc);
+    li.addEventListener("click", ()=>{ if (editor){ editor.revealLineInCenter(p.line); editor.setPosition({lineNumber:p.line, column:p.col}); editor.focus(); } });
+    list.appendChild(li);
+  });
+}
+function setProblemFilter(f){
+  problemFilter = f;
+  [["all","pfAll"],["error","pfErr"],["warn","pfWarn"],["info","pfHint"]].forEach(function(pair){ const b=$(pair[1]); if(b) b.setAttribute("aria-selected", pair[0]===f?"true":"false"); });
+  paintProblems();
+}
+/* ====== P3: COMPILE (busytex) + RENDER (PDF.js) + CLASS RESOLVER ====== */
 const BASE = new URL("core/busytex", document.baseURI).href;
 const TEXMF = new URL("core/texmf", document.baseURI).href;
 const DATA_PACKAGES = ["texlive-basic.js"];
-// Big assets pre-fetched with a real progress bar (then served from cache to the worker).
 const WARM = [
   { url: BASE + "/busytex.wasm", size: 32501898 },
   { url: BASE + "/texlive-basic.data", size: 90782222 },
   { url: BASE + "/texlive-basic.js", size: 2049135 }
 ];
-
-let runner = null, runnerReady = false, tools = {};
-let bundled = null;
-let projectFiles = [];   // { path, bytes:Uint8Array, isText }
-let mainFile = null;
-let lastPdf = null;
+let runner = null, runnerReady = false, tools = {}, bundled = null;
 let timerId = null, timerStart = 0;
-let compiling = false, dirHandle = null, watchTimer = null, lastSig = "";
+const fetchedPkgs = new Map();   // resolver cache: path -> content (string|Uint8Array)
 
-const TEXT_RE = /\.(tex|bib|cls|sty|ltx|def|clo|bbl|aux|txt|tikz|sub|cfg|fd|enc|map)$/i;
-const TEX_RE  = /\.tex$/i;
-
-function setStatus(text, kind){
-  statusText.textContent = text;
-  dot.className = "dot" + (kind ? " " + kind : "");
+// publisher/extra class sources (CORS-enabled CDN mirrors of GitHub repos). User-extendable.
+const PKG_MIRRORS = [ (f) => "https://cdn.jsdelivr.net/gh/borisveytsman/acmart@master/" + f ];
+const CTAN_BASE = "https://mirrors.ctan.org";
+const CORS_PROXIES = [
+  (u) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+  (u) => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+  (u) => "https://thingproxy.freeboard.io/fetch/" + u
+];
+const fetchedDirs = new Set();    // CTAN dirs that worked (cascade memory)
+const fetchedRepos = new Set();   // jsDelivr gh repos that worked (cascade memory)
+function extraMirrors(){
+  try { return (localStorage.getItem("tex_pkg_mirrors")||"").split("\n").map(s=>s.trim()).filter(Boolean).map(t => (f)=> t.replace("{file}", f)); }
+  catch(e){ return []; }
 }
-function decode(bytes){ return new TextDecoder("utf-8").decode(bytes); }
-function currentEngineKind(){
-  const r = document.querySelector('input[name="engine"]:checked');
-  return r ? r.value : "xetex";
+function candidateUrls(name){
+  const base = name.replace(/\.[^.]+$/,"");
+  const stem = base.replace(/[0-9].*$/,"");
+  const urls = [];
+  // 1) jsDelivr GitHub package mirrors (proper CORS, no proxy needed); reuse repos that already worked
+  const repos = []; fetchedRepos.forEach(r=>repos.push(r)); repos.push(base, stem);
+  repos.forEach(r => urls.push({ kind:"repo", key:r, url:"https://cdn.jsdelivr.net/gh/LaTeX-Package-Repositories/"+r+"/"+name }));
+  // 2) user-configured + known direct mirrors
+  extraMirrors().concat(PKG_MIRRORS).forEach(fn => urls.push({ url: fn(name) }));
+  // 3) CTAN through CORS proxies; reuse dirs that already worked
+  const dirs = []; fetchedDirs.forEach(d=>dirs.push(d));
+  dirs.push("macros/latex/contrib/"+base, "macros/latex/required/"+base, "macros/latex/base",
+            "macros/latex/required/tools", "macros/latex/contrib/"+stem, "macros/generic/"+base, "fonts/"+base);
+  dirs.forEach(d => CORS_PROXIES.forEach(prox => urls.push({ kind:"dir", key:d, url: prox(CTAN_BASE+"/"+d+"/"+name) })));
+  return urls;
+}
+async function fetchPackage(name){
+  name = name.replace(/^\.?\//,"");
+  if (fetchedPkgs.has(name)) return true;
+  const isText = isTextPath(name) || /\.(cls|sty|def|clo|fd|cfg|bst|tex|ldf)$/i.test(name);
+  for (const t of candidateUrls(name)){
+    try {
+      const resp = await fetch(t.url, { cache: "force-cache" });
+      if (!resp.ok) continue;
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      if (buf.length < 8) continue;
+      if (isText){ const head = decode(buf.slice(0,400)).toLowerCase(); if (head.includes("<!doctype html") || head.includes("<html")) continue; }
+      fetchedPkgs.set(name, isText ? decode(buf) : buf);
+      if (t.kind==="dir" && t.key) fetchedDirs.add(t.key);
+      if (t.kind==="repo" && t.key) fetchedRepos.add(t.key);
+      return true;
+    } catch(e){ /* try next */ }
+  }
+  return false;
 }
 
 // ---- timer + progress ----
-function startTimer(){
-  timerStart = performance.now();
-  elapsedEl.textContent = "0.0s";
-  timerId = setInterval(() => { elapsedEl.textContent = ((performance.now()-timerStart)/1000).toFixed(1) + "s"; }, 100);
-}
+function startTimer(){ timerStart = performance.now(); $("elapsed").textContent = "0.0s"; timerId = setInterval(()=>{ $("elapsed").textContent = ((performance.now()-timerStart)/1000).toFixed(1)+"s"; }, 100); }
 function stopTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
-function showProgress(label){
-  progress.hidden = false; progress.setAttribute("aria-hidden","false");
-  pLabel.textContent = label || "Working...";
-}
-function hideProgress(){ progress.hidden = true; progress.setAttribute("aria-hidden","true"); stopTimer(); }
-function setDeterminate(pct){
-  progress.classList.remove("indeterminate");
-  const v = Math.max(0, Math.min(100, Math.round(pct)));
-  pfill.style.width = v + "%"; pfill.setAttribute("aria-valuenow", v);
-}
-function setIndeterminate(){
-  progress.classList.add("indeterminate");
-  pfill.removeAttribute("aria-valuenow"); pfill.style.width = "";
-}
+function showProgress(label){ const p=$("progress"); p.hidden=false; p.setAttribute("aria-hidden","false"); $("pLabel").textContent = label || "Working..."; }
+function hideProgress(){ const p=$("progress"); p.hidden=true; p.setAttribute("aria-hidden","true"); stopTimer(); }
+function setDeterminate(pct){ const p=$("progress"); p.classList.remove("indeterminate"); const v=Math.max(0,Math.min(100,Math.round(pct))); $("pfill").style.width=v+"%"; $("pfill").setAttribute("aria-valuenow",v); }
+function setIndeterminate(){ $("progress").classList.add("indeterminate"); $("pfill").removeAttribute("aria-valuenow"); $("pfill").style.width=""; }
 
-// ---- File intake ----
-function openPicker(){ fileInput.click(); }
-drop.addEventListener("click", openPicker);
-drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openPicker(); } });
-["dragover","dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("drag"); }));
-["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("drag"); }));
-drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
-fileInput.addEventListener("change", () => { if (fileInput.files) addFiles(fileInput.files); fileInput.value=""; });
-
-async function addFiles(fileList){
-  for (const f of Array.from(fileList)){
-    const buf = new Uint8Array(await f.arrayBuffer());
-    if (/\.zip$/i.test(f.name)) await addZip(buf);
-    else upsertFile(cleanPath(f.name), buf);
-  }
-  refreshFileUI();
-}
-async function addZip(bytes){
-  if (!window.JSZip){ setStatus("Zip support failed to load.", "err"); return; }
-  try {
-    const zip = await JSZip.loadAsync(bytes);
-    for (const e of Object.values(zip.files)){ if (e.dir) continue; upsertFile(cleanPath(e.name), await e.async("uint8array")); }
-  } catch(err){ setStatus("Could not read the zip file.", "err"); console.error(err); }
-}
-function cleanPath(p){ return p.replace(/\\/g,"/").replace(/^\.?\//,""); }
-function upsertFile(path, bytes){
-  if (/(^|\/)__MACOSX\//.test(path) || /(^|\/)\.DS_Store$/.test(path)) return;
-  const isText = TEXT_RE.test(path);
-  const existing = projectFiles.find(f => f.path === path);
-  if (existing){ existing.bytes = bytes; existing.isText = isText; }
-  else projectFiles.push({ path, bytes, isText });
-}
-function refreshFileUI(){
-  const texFiles = projectFiles.filter(f => TEX_RE.test(f.path)).map(f => f.path);
-  if (!texFiles.includes(mainFile)) mainFile = pickMain(texFiles);
-  fileListEl.innerHTML = "";
-  projectFiles.forEach(f => {
-    const li=document.createElement("li");
-    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=f.path; nm.title=f.path; li.appendChild(nm);
-    if (f.path===mainFile){ const m=document.createElement("span"); m.className="mn"; m.textContent="main"; li.appendChild(m); }
-    fileListEl.appendChild(li);
-  });
-  if (texFiles.length > 1){
-    mainCard.style.display="";
-    mainSelect.innerHTML="";
-    texFiles.forEach(p => { const o=document.createElement("option"); o.value=p; o.textContent=p; if(p===mainFile)o.selected=true; mainSelect.appendChild(o); });
-  } else mainCard.style.display="none";
-  compileBtn.disabled = !mainFile;
-  if (mainFile) setStatus("Ready. Main file: " + mainFile, "");
-  else if (projectFiles.length) setStatus("No .tex file found. Add one to compile.", "err");
-  else setStatus("Idle. Add a .tex file to begin.", "");
-}
-function pickMain(texFiles){
-  if (!texFiles.length) return null;
-  const named = texFiles.find(p => /(^|\/)main\.tex$/i.test(p));
-  if (named) return named;
-  for (const p of texFiles){ const f = projectFiles.find(x => x.path === p); if (f && f.isText && decode(f.bytes).includes("\\documentclass")) return p; }
-  return texFiles[0];
-}
-mainSelect.addEventListener("change", () => { mainFile = mainSelect.value; refreshFileUI(); });
-resetBtn.addEventListener("click", () => {
-  stopWatching(); if ($("liveStatus")) $("liveStatus").textContent = "";
-  projectFiles=[]; mainFile=null; lastPdf=null;
-  fileListEl.innerHTML=""; mainCard.style.display="none";
-  viewer.innerHTML='<div class="empty">Your compiled PDF will appear here.</div>';
-  logEl.textContent="No log yet."; pageInfo.textContent=""; hideProgress();
-  downloadBtn.disabled=true; compileBtn.disabled=true;
-  setStatus("Cleared. Add a .tex file to begin.", "");
-});
-
-// ---- bundled packages (extra .sty not in the basic TeX Live set) ----
 async function getBundled(){
   if (bundled) return bundled;
   bundled = [];
   try {
-    const mani = await fetch(TEXMF + "/manifest.json").then(r => r.json());
-    for (const name of (mani.packages || [])){
-      const content = await fetch(TEXMF + "/" + name).then(r => r.text());
-      bundled.push({ path: name, content });
-    }
+    const mani = await fetch(TEXMF + "/manifest.json", { cache: "no-store" }).then(r=>r.json());
+    for (const name of (mani.packages || [])){ const content = await fetch(TEXMF + "/" + name, { cache: "no-store" }).then(r=>r.text()); bundled.push({ path:name, content }); }
   } catch(e){ console.warn("Bundle load failed:", e); }
   return bundled;
 }
-
-// ---- warm assets with a real progress bar, then init engine ----
 async function warmAssets(){
-  const total = WARM.reduce((a,f)=>a+f.size,0);
-  let done = 0;
+  const total = WARM.reduce((a,f)=>a+f.size,0); let done = 0;
   for (const f of WARM){
     const resp = await fetch(f.url);
     if (!resp.ok || !resp.body){ done += f.size; setDeterminate(done/total*100); continue; }
@@ -373,167 +1040,443 @@ async function getRunner(){
   if (runner && runnerReady) return runner;
   showProgress("Downloading engine and TeX Live (about 125 MB, first run only)"); setDeterminate(0); startTimer();
   await warmAssets();
-  pLabel.textContent = "Starting the TeX engine"; setIndeterminate();
+  $("pLabel").textContent = "Starting the TeX engine"; setIndeterminate();
   const r = new BusyTexRunner({ busytexBasePath: BASE, engineMode: "combined", preloadDataPackages: DATA_PACKAGES, catalogDataPackages: DATA_PACKAGES });
   await r.initialize();
   runner = r; runnerReady = true;
   tools.pdftex = new PdfLatex(runner);
   tools.xetex  = new XeLatex(runner);
+  try { tools.luatex = new LuaLatex(runner); } catch(e){ tools.luatex = tools.xetex; }
   return runner;
 }
+function currentEngineKind(){ const r=document.querySelector('input[name="engine"]:checked'); return r?r.value:"xetex"; }
+function engineLabel(k){ return k==="xetex"?"XeLaTeX":k==="luatex"?"LuaLaTeX":"pdfLaTeX"; }
 
-compileBtn.addEventListener("click", compile);
+function applyBibBackend(text){
+  try { if (!$("biberFix") || !$("biberFix").checked) return text; } catch(e){ return text; }
+  return text.replace(/\\usepackage(\[([^\]]*)\])?\{biblatex\}/g, function(m, br, opts){
+    opts = opts || "";
+    if (/\bbackend\s*=/.test(opts)) opts = opts.replace(/backend\s*=\s*\w+/, "backend=bibtex");
+    else opts = (opts.trim() ? opts.trim() + ", " : "") + "backend=bibtex";
+    return "\\usepackage[" + opts + "]{biblatex}";
+  });
+}
 async function compile(){
-  if (!mainFile){ setStatus("Choose a main .tex file first.", "err"); return; }
-  if (compiling) return;
-  compiling = true;
-  compileBtn.disabled = true; downloadBtn.disabled = true;
+  if (!state.mainFile){ setStatus("Choose or create a main .tex file first.", "err"); return; }
+  if (state.compiling) return;
+  state.compiling = true;
+  $("compileBtn").disabled = true; $("downloadBtn").disabled = true;
+  syncAllModels();
   const kind = currentEngineKind();
   try {
     setStatus("Preparing the engine...", "busy");
     await getRunner();
     const pkgs = await getBundled();
-
-    const tool = kind === "xetex" ? tools.xetex : tools.pdftex;
-    const mf = projectFiles.find(f => f.path === mainFile);
-    const additional = projectFiles.filter(f => f.path !== mainFile).map(f => ({ path: f.path, content: f.isText ? decode(f.bytes) : f.bytes }));
-    // add bundled packages the user did not supply themselves
-    const have = new Set(projectFiles.map(f => f.path));
-    for (const p of pkgs){ if (!have.has(p.path)) additional.push(p); }
-
-    showProgress("Compiling " + mainFile + " with " + (kind==="xetex"?"XeLaTeX":"pdfLaTeX")); setIndeterminate();
-    if (!timerId) startTimer();
-    setStatus("Compiling " + mainFile + "...", "busy");
+    const tool = tools[kind] || tools.xetex;
+    let r = null, attempts = 0, maxAttempts = 8, lastMissing = null;
+    showProgress("Compiling " + baseName(state.mainFile) + " with " + engineLabel(kind)); setIndeterminate(); if (!timerId) startTimer();
+    setStatus("Compiling " + baseName(state.mainFile) + "...", "busy");
     const t0 = performance.now();
-    const r = await tool.compile({ input: decode(mf.bytes), mainTexPath: mainFile, additionalFiles: additional, dataPackagesJs: DATA_PACKAGES });
-    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    while (attempts++ < maxAttempts){
+      const mf = getFile(state.mainFile);
+      const mainDir = state.mainFile.includes("/") ? state.mainFile.slice(0, state.mainFile.lastIndexOf("/")+1) : "";
+      const have = new Set(state.files.map(f=>f.path));
+      const additional = state.files.filter(f=>f.path!==state.mainFile).map(f=>({ path:f.path, content: f.isText?applyBibBackend(decode(f.bytes)):f.bytes }));
+      // Write bundled + fetched packages INTO the main file's directory: the engine
+      // changes into that directory to compile, so root-level files would not be found.
+      for (const p of pkgs){ const tp = mainDir + p.path; if (!have.has(tp)) additional.push({ path: tp, content: p.content }); }
+      for (const [path, content] of fetchedPkgs){ const tp = mainDir + path; if (!have.has(tp)) additional.push({ path: tp, content }); }
+      r = await tool.compile({ input: applyBibBackend(decode(mf.bytes)), mainTexPath: state.mainFile, additionalFiles: additional, dataPackagesJs: DATA_PACKAGES });
+      if (r.success) break;
+      const miss = (r.log||"").match(/(?:File|I can't find file) [`'"]?([^'"\n]+?)['"]? (?:not found|on input)/i) || (r.log||"").match(/LaTeX Error: File [`']([^']+)' not found/);
+      const name = miss ? miss[1].trim() : null;
+      if (!name || name === lastMissing){ break; }
+      lastMissing = name;
+      $("pLabel").textContent = "Fetching missing file: " + name;
+      const ok = await fetchPackage(name) || (!/\.\w+$/.test(name) && await fetchPackage(name + ".sty"));
+      if (!ok) break;
+    }
+    const secs = ((performance.now() - t0)/1000).toFixed(1);
     hideProgress();
-
-    logEl.textContent = r.log || "(no log returned)";
+    $("log").textContent = r.log || "(no log returned)";
     if (r.success && r.pdf && r.pdf.length){
-      lastPdf = r.pdf.slice(0);
+      state.lastPdf = r.pdf.slice(0);
       await renderPdf(r.pdf);
-      downloadBtn.disabled = false;
+      $("downloadBtn").disabled = false;
+      switchPanel("preview");
       setStatus("Done in " + secs + "s. " + (r.pdf.length/1024).toFixed(0) + " KB PDF.", "ok");
     } else {
-      viewer.innerHTML = '<div class="empty">Compilation failed. See the log below for details.</div>';
-      pageInfo.textContent = "";
+      $("viewer").innerHTML = '<div class="empty">Compilation failed. See the log below for details.</div>';
+      $("pageInfo").textContent = "";
       const miss = (r.log||"").match(/File `([^']+)' not found/);
       const fontFail = /mktexpk|fork\(\)|not loadable|Metafont/i.test(r.log||"");
-      if (miss) setStatus("Missing package: " + miss[1] + ". It is not in the bundled set.", "err");
-      else if (fontFail && kind === "pdftex") setStatus("pdfLaTeX could not build a font. Switch the engine to XeLaTeX (top left) and compile again.", "err");
+      if (miss) setStatus("Could not auto-fetch " + miss[1] + ". Drag the file into Files and recompile, or bundle it in core/texmf.", "err");
+      else if (fontFail && kind === "pdftex") setStatus("pdfLaTeX could not build a font. Switch to XeLaTeX and compile again.", "err");
       else setStatus("Compilation failed. Check the log.", "err");
-      logBox.open = true;
+      $("logBox").open = true; switchPanel("preview");
     }
   } catch(err){
     console.error(err); hideProgress();
     setStatus("Error: " + (err && err.message ? err.message : "compilation failed"), "err");
-    logEl.textContent = (logEl.textContent && logEl.textContent !== "No log yet." ? logEl.textContent + "\n\n" : "") + String(err && err.stack || err);
-    logBox.open = true;
+    $("log").textContent = ($("log").textContent && $("log").textContent!=="No log yet." ? $("log").textContent+"\n\n" : "") + String(err && err.stack || err);
+    $("logBox").open = true;
   } finally {
-    compileBtn.disabled = !mainFile; stopTimer(); compiling = false;
+    $("compileBtn").disabled = !state.mainFile; stopTimer(); state.compiling = false;
   }
 }
 
-// ---- Render with PDF.js ----
 async function renderPdf(bytes){
+  const viewer = $("viewer");
   if (!window.pdfjsLib){ setStatus("PDF viewer failed to load.", "err"); return; }
   viewer.innerHTML = "";
   const doc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
-  pageInfo.textContent = doc.numPages + (doc.numPages === 1 ? " page" : " pages");
-  const targetWidth = Math.min(viewer.clientWidth - 36, 900);
+  $("pageInfo").textContent = doc.numPages + (doc.numPages===1?" page":" pages");
+  const targetWidth = Math.min(viewer.clientWidth - 32, 900);
   const dpr = window.devicePixelRatio || 1;
   for (let n=1; n<=doc.numPages; n++){
     const page = await doc.getPage(n);
     const base = page.getViewport({ scale: 1 });
-    const vp = page.getViewport({ scale: (targetWidth / base.width) * dpr });
+    const vp = page.getViewport({ scale: (targetWidth/base.width)*dpr });
     const canvas = document.createElement("canvas");
     canvas.width = Math.floor(vp.width); canvas.height = Math.floor(vp.height);
-    canvas.style.width = Math.floor(vp.width / dpr) + "px";
+    canvas.style.width = Math.floor(vp.width/dpr) + "px";
     canvas.setAttribute("role","img"); canvas.setAttribute("aria-label","Page " + n);
     viewer.appendChild(canvas);
     await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
   }
 }
+/* ====== P4: GIT (GitHub / GitLab via isomorphic-git, fully client-side) ====== */
+const GIT_DIR = "/repo";
+let gitfs = null, pfs = null;
+function gitFS(){ if (!gitfs){ gitfs = new LightningFS("texeditorfs"); pfs = gitfs.promises; } return gitfs; }
+function gitReady(){ return window.git && window.GitHttp && window.LightningFS; }
+function gitStatus(msg){ const el=$("gitStatus"); if (el) el.textContent = msg; }
 
-// ---- Download ----
-downloadBtn.addEventListener("click", () => {
-  if (!lastPdf) return;
-  const name = (mainFile || "document").replace(/.*\//, "").replace(/\.tex$/i, "") + ".pdf";
-  const url = URL.createObjectURL(new Blob([lastPdf], { type: "application/pdf" }));
-  const a = document.createElement("a");
-  a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+function openGit(){ const m=$("gitModal"); m.hidden=false; restoreGitPrefs(); $("gitUrl").focus(); }
+function closeGit(){ $("gitModal").hidden = true; }
+function saveGitPrefs(){
+  try { localStorage.setItem("tex_git_url", $("gitUrl").value.trim());
+        localStorage.setItem("tex_git_branch", $("gitBranch").value.trim());
+        localStorage.setItem("tex_git_proxy", $("gitProxy").value.trim());
+        localStorage.setItem("tex_git_user", $("gitUser").value.trim()); } catch(e){}
+}
+function restoreGitPrefs(){
+  try { $("gitUrl").value = $("gitUrl").value || localStorage.getItem("tex_git_url") || "";
+        $("gitBranch").value = localStorage.getItem("tex_git_branch") || "main";
+        $("gitProxy").value = localStorage.getItem("tex_git_proxy") || "https://cors.isomorphic-git.org";
+        $("gitUser").value = $("gitUser").value || localStorage.getItem("tex_git_user") || ""; } catch(e){}
+}
+async function rmrf(dir){
+  try { const entries = await pfs.readdir(dir);
+    for (const e of entries){ const p = dir + "/" + e; const st = await pfs.stat(p); if (st.isDirectory()) await rmrf(p); else await pfs.unlink(p); }
+    await pfs.rmdir(dir);
+  } catch(e){ /* missing */ }
+}
+async function mkdirp(dir){
+  const parts = dir.split("/").filter(Boolean); let cur = "";
+  for (const p of parts){ cur += "/" + p; try { await pfs.mkdir(cur); } catch(e){ /* exists */ } }
+}
+async function readRepoFiles(dir, prefix, out){
+  const entries = await pfs.readdir(dir);
+  for (const name of entries){
+    if (name === ".git") continue;
+    const full = dir + "/" + name; const rel = prefix ? prefix + "/" + name : name;
+    const st = await pfs.stat(full);
+    if (st.isDirectory()) await readRepoFiles(full, rel, out);
+    else { const data = await pfs.readFile(full); out.push({ path: rel, bytes: new Uint8Array(data) }); }
+  }
+}
+
+async function gitClone(){
+  if (!gitReady()){ gitStatus("Git libraries are still loading. Try again in a moment."); return; }
+  const url = $("gitUrl").value.trim(); if (!url){ gitStatus("Enter a repository URL."); return; }
+  const ref = $("gitBranch").value.trim() || "main";
+  const corsProxy = $("gitProxy").value.trim() || "https://cors.isomorphic-git.org";
+  const token = $("gitToken").value, user = $("gitUser").value.trim();
+  saveGitPrefs(); gitFS();
+  gitStatus("Cloning " + url + " ..."); setStatus("Cloning repository...", "busy");
+  try {
+    await rmrf(GIT_DIR); await mkdirp(GIT_DIR);
+    await git.clone({ fs: gitfs, http: GitHttp, dir: GIT_DIR, corsProxy, url, ref, singleBranch: true, depth: 1,
+      onAuth: () => token ? ({ username: user || "token", password: token }) : undefined });
+    const out = []; await readRepoFiles(GIT_DIR, "", out);
+    if (!out.length){ gitStatus("Cloned, but no files found."); return; }
+    state.files = out.map(f => ({ path: f.path, bytes: f.bytes, isText: isTextPath(f.path) }));
+    state.models.clear(); state.openOrder = []; state.activePath = null; state.dirty.clear();
+    refreshAll();
+    const firstTex = state.files.find(f => TEX_RE.test(f.path));
+    if (firstTex) openInEditor(state.mainFile || firstTex.path);
+    gitStatus("Cloned " + out.length + " files from " + ref + ".");
+    setStatus("Cloned " + out.length + " files.", "ok");
+    closeGit();
+  } catch(err){
+    console.error(err);
+    gitStatus("Clone failed: " + (err && err.message ? err.message : err) + " (private repos need a token; check the branch and CORS proxy).");
+    setStatus("Clone failed.", "err");
+  }
+}
+
+async function gitPush(){
+  if (!gitReady()){ gitStatus("Git libraries are still loading."); return; }
+  const token = $("gitToken").value; const user = $("gitUser").value.trim();
+  if (!token){ gitStatus("A personal access token is required to push. It stays in this browser."); return; }
+  const url = $("gitUrl").value.trim();
+  const ref = $("gitBranch").value.trim() || "main";
+  const corsProxy = $("gitProxy").value.trim() || "https://cors.isomorphic-git.org";
+  const message = $("gitMsg").value.trim() || "Update from TeX Editor Online";
+  saveGitPrefs(); syncAllModels();
+  if (!gitfs){ gitStatus("Clone a repository first, then push your changes."); return; }
+  try {
+    let hasRepo = true; try { await pfs.stat(GIT_DIR + "/.git"); } catch(e){ hasRepo = false; }
+    if (!hasRepo){ gitStatus("No cloned repository in this browser. Clone first."); return; }
+    gitStatus("Writing " + state.files.length + " files...");
+    for (const f of state.files){
+      const full = GIT_DIR + "/" + f.path; const dir = full.replace(/\/[^/]*$/, "");
+      await mkdirp(dir); await pfs.writeFile(full, f.bytes);
+      await git.add({ fs: gitfs, dir: GIT_DIR, filepath: f.path });
+    }
+    const sha = await git.commit({ fs: gitfs, dir: GIT_DIR, message,
+      author: { name: user || "TeX Editor Online", email: (user ? user + "@users.noreply.github.com" : "editor@tex.local") } });
+    gitStatus("Committed " + sha.slice(0,7) + ". Pushing to " + ref + "...");
+    setStatus("Pushing to " + ref + "...", "busy");
+    const res = await git.push({ fs: gitfs, http: GitHttp, dir: GIT_DIR, corsProxy, remote: "origin", ref,
+      url: url || undefined, onAuth: () => ({ username: user || "token", password: token }) });
+    if (res && res.ok === false){ gitStatus("Push rejected: " + (res.error || "check token scope and branch protection.")); setStatus("Push rejected.", "err"); }
+    else { gitStatus("Pushed to " + ref + " successfully."); setStatus("Pushed to " + ref + ".", "ok"); }
+  } catch(err){
+    console.error(err);
+    gitStatus("Push failed: " + (err && err.message ? err.message : err) + " (token needs repo/write scope; branch may be protected).");
+    setStatus("Push failed.", "err");
+  }
+}
+/* ====== P5: PANELS/MODE, TEMPLATES, LIVE FOLDER, INIT ====== */
+function switchPanel(name){
+  ["files","editor","preview"].forEach(p => { const el=$("panel"+p.charAt(0).toUpperCase()+p.slice(1)); if (el) el.classList.toggle("active", p===name); });
+  const map = { files:"tabFiles", editor:"tabEditor", preview:"tabPreview" };
+  Object.entries(map).forEach(([p,id]) => { const t=$(id); if (t) t.setAttribute("aria-selected", p===name?"true":"false"); });
+}
+function setMode(mode){
+  document.body.classList.toggle("mode-view", mode==="view");
+  document.body.classList.toggle("mode-editor", mode!=="view");
+  $("modeEditor").setAttribute("aria-pressed", mode!=="view"?"true":"false");
+  $("modeView").setAttribute("aria-pressed", mode==="view"?"true":"false");
+  $("tabEditor").style.display = mode==="view" ? "none" : "";
+  if (mode==="view" && document.body.classList.contains("active-editor")) switchPanel("files");
+  try { localStorage.setItem("tex_mode", mode); } catch(e){}
+  if (editor) setTimeout(()=>editor.layout(), 50);
+}
+
+/* ---- Templates (best-practice, accessible; publisher classes via resolver/upload) ---- */
+const TPL_META = "\\DocumentMetadata{pdfstandard=ua-2, lang=en-US, testphase={phase-III}}\n";
+const TEMPLATES = {
+  article: { main:"main.tex", files:{ "main.tex":
+TPL_META +
+"\\documentclass[11pt]{article}\n" +
+"\\usepackage{iftex}\n" +
+"\\ifPDFTeX\\usepackage[T1]{fontenc}\\usepackage[utf8]{inputenc}\\fi\n" +
+"\\usepackage{amsmath,amssymb}\n" +
+"\\usepackage{graphicx}      % use vector figures: .pdf, .eps (pdfLaTeX) or .pdf/.svg via svg pkg\n" +
+"\\usepackage[hidelinks]{hyperref}\n" +
+"\\usepackage{cleveref}      % \\cref auto-adds the type: Eq., Fig., Sec.\n\n" +
+"% Semantic macros keep content separate from formatting\n" +
+"\\newcommand{\\R}{\\mathbb{R}}\n\n" +
+"\\title{A Clean, Accessible Article}\n\\author{Your Name}\n\\date{\\today}\n\n" +
+"\\begin{document}\n\\maketitle\n\n\\begin{abstract}\nA short, semantic abstract.\n\\end{abstract}\n\n" +
+"\\section{Introduction}\\label{sec:intro}\nInline math uses \\(\\alpha \\in \\R\\). See \\cref{eq:euler}.\n\n" +
+"\\begin{equation}\\label{eq:euler}\n  e^{i\\pi} + 1 = 0\n\\end{equation}\n\n" +
+"\\section{Method}\\label{sec:method}\nLet content flow in paragraphs; avoid forced line breaks.\n\n" +
+"\\end{document}\n" } },
+
+  report: { main:"main.tex", files:{
+"main.tex":
+TPL_META +
+"\\documentclass[11pt]{report}\n\\usepackage{amsmath,amssymb}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{cleveref}\n\n" +
+"\\title{Modular Report}\\author{Your Name}\\date{\\today}\n\n\\begin{document}\n\\maketitle\n\\tableofcontents\n\n" +
+"% Split large documents into files for fast, organized compilation\n\\include{sections/introduction}\n\\include{sections/results}\n\n\\end{document}\n",
+"sections/introduction.tex":
+"\\chapter{Introduction}\\label{cha:intro}\nThis chapter lives in its own file and is pulled in with \\textbackslash include.\n",
+"sections/results.tex":
+"\\chapter{Results}\\label{cha:results}\nCross-reference earlier material with \\cref{cha:intro}.\n" } },
+
+  math: { main:"main.tex", files:{ "main.tex":
+TPL_META +
+"\\documentclass[11pt]{article}\n\\usepackage{amsmath,amssymb,amsthm,mathtools}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{cleveref}\n\n" +
+"\\theoremstyle{plain}\\newtheorem{theorem}{Theorem}\n\\theoremstyle{definition}\\newtheorem{definition}{Definition}\n\n" +
+"\\begin{document}\n\\section{Results}\\label{sec:res}\n\n" +
+"\\begin{definition}\\label{def:grp}\nA group is a set with an associative operation, an identity, and inverses.\n\\end{definition}\n\n" +
+"\\begin{theorem}\\label{thm:main}\nFor all \\(x\\), the following holds:\n\\end{theorem}\n\n" +
+"\\begin{align}\\label{eq:sys}\n  a &= b + c,\\\\\n  d &= e - f.\n\\end{align}\n\nBy \\cref{thm:main} and \\cref{eq:sys}, the claim follows.\n\n\\end{document}\n" } },
+
+  beamer: { main:"main.tex", files:{ "main.tex":
+TPL_META +
+"\\documentclass{beamer}\n\\usetheme{Madrid}\n\\usepackage{amsmath}\n\n" +
+"\\title{Talk Title}\\author{Your Name}\\date{\\today}\n\n\\begin{document}\n\\frame{\\titlepage}\n\n" +
+"\\begin{frame}{Outline}\n\\tableofcontents\n\\end{frame}\n\n" +
+"\\section{Introduction}\n\\begin{frame}{Introduction}\n\\begin{itemize}\n  \\item First point\n  \\item Second point\n\\end{itemize}\n\\end{frame}\n\n\\end{document}\n" } },
+
+  cv: { main:"main.tex", files:{ "main.tex":
+TPL_META +
+"\\documentclass[11pt]{article}\n\\usepackage[margin=1in]{geometry}\n\\usepackage{titlesec}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{enumitem}\n\n" +
+"\\titleformat{\\section}{\\large\\bfseries}{}{0pt}{}[\\titlerule]\n\\setlist[itemize]{leftmargin=*,nosep}\n\\pagestyle{empty}\n\n" +
+"\\newcommand{\\entry}[2]{\\textbf{#1}\\hfill #2\\\\}\n\n\\begin{document}\n" +
+"{\\Huge Your Name}\\\\[2pt]\nWashington D.C., 20003 \\,|\\, your.email@example.com\n\n" +
+"\\section{Experience}\n\\entry{Role, Company}{2024--present}\n\\begin{itemize}\\item Achievement with impact.\\end{itemize}\n\n" +
+"\\section{Education}\n\\entry{Degree, University}{Year}\n\n\\end{document}\n" } },
+
+  bib: { main:null, files:{ "references.bib":
+"@article{shannon1948,\n  author  = {Shannon, Claude E.},\n  title   = {A Mathematical Theory of Communication},\n  journal = {Bell System Technical Journal},\n  year    = {1948},\n  volume  = {27},\n  pages   = {379--423}\n}\n\n@book{lamport1994,\n  author    = {Lamport, Leslie},\n  title     = {LaTeX: A Document Preparation System},\n  publisher = {Addison-Wesley},\n  year      = {1994}\n}\n" } },
+
+  ieee: { main:"main.tex", files:{ "main.tex":
+"\\documentclass[conference]{IEEEtran}\n% IEEEtran.cls is fetched on first compile if not bundled.\n\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{cite}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{cleveref}\n\n" +
+"\\title{IEEE Conference Paper Title}\n\\author{\\IEEEauthorblockN{Author Name}\\IEEEauthorblockA{Department\\\\Institution\\\\Washington D.C., 20003}}\n\n" +
+"\\begin{document}\n\\maketitle\n\\begin{abstract}\nAbstract text.\n\\end{abstract}\n\\begin{IEEEkeywords}\nkeyword, keyword\n\\end{IEEEkeywords}\n\n" +
+"\\section{Introduction}\\label{sec:intro}\nSee \\cref{eq:one}.\n\\begin{equation}\\label{eq:one}\n  E = mc^2\n\\end{equation}\n\n\\bibliographystyle{IEEEtran}\n% \\bibliography{references}\n\\end{document}\n" } },
+
+  acm: { main:"main.tex", files:{ "main.tex":
+"\\documentclass[sigconf]{acmart}\n% acmart.cls and deps are fetched on first compile if not bundled.\n\\settopmatter{printacmref=false}\n\\setcopyright{none}\n\n" +
+"\\begin{document}\n\\title{ACM Article Title}\n\\author{Author Name}\\affiliation{\\institution{Institution}\\city{Washington D.C.}\\country{USA}}\n\\email{your.email@example.com}\n\n" +
+"\\begin{abstract}\nAbstract text.\n\\end{abstract}\n\\maketitle\n\n\\section{Introduction}\\label{sec:intro}\nBody text.\n\n\\end{document}\n" } },
+
+  springer: { main:"main.tex", files:{ "main.tex":
+"\\documentclass{llncs}\n% Springer LNCS class llncs.cls is fetched on first compile if not bundled.\n\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{cleveref}\n\n" +
+"\\begin{document}\n\\title{Springer LNCS Paper}\n\\author{Author Name}\n\\institute{Institution, Washington D.C. 20003 \\email{your.email@example.com}}\n\\maketitle\n\n" +
+"\\begin{abstract}\nAbstract text.\n\\keywords{First \\and Second}\n\\end{abstract}\n\n\\section{Introduction}\\label{sec:intro}\nBody text; see \\cref{sec:intro}.\n\n\\end{document}\n" } },
+
+  mdpi: { main:"main.tex", files:{ "main.tex":
+"\\documentclass[journal,article,submit,moreauthors,pdftex]{mdpi}\n% MDPI class + Definitions/mdpi.sty are fetched on first compile if not bundled.\n\\Title{MDPI Article Title}\n\\Author{Author Name}\n\\address{Washington D.C., 20003; your.email@example.com}\n\n" +
+"\\begin{document}\n\\maketitle\n\\begin{abstract}\nAbstract text.\n\\end{abstract}\n\\keyword{keyword1; keyword2}\n\n\\section{Introduction}\\label{sec:intro}\nBody text.\n\n\\end{document}\n" } },
+
+  elsevier: { main:"main.tex", files:{ "main.tex":
+"\\documentclass[preprint,12pt]{elsarticle}\n% elsarticle.cls is fetched on first compile if not bundled.\n\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{cleveref}\n\n" +
+"\\begin{document}\n\\begin{frontmatter}\n\\title{Elsevier Article Title}\n\\author{Author Name}\n\\affiliation{organization={Institution}, city={Washington D.C.}, postcode={20003}, country={USA}}\n" +
+"\\begin{abstract}\nAbstract text.\n\\end{abstract}\n\\begin{keyword}\nkeyword \\sep keyword\n\\end{keyword}\n\\end{frontmatter}\n\n\\section{Introduction}\\label{sec:intro}\nBody text.\n\n\\end{document}\n" } }
+};
+function applyTemplate(key){
+  const tpl = TEMPLATES[key]; if (!tpl) return;
+  let firstOpen = null;
+  for (const [path, content] of Object.entries(tpl.files)){
+    upsertFile(path, encode(content));
+    if (!firstOpen && isTextPath(path)) firstOpen = path;
+  }
+  if (tpl.main) state.mainFile = tpl.main;
+  refreshAll();
+  if (tpl.main || firstOpen) openInEditor(tpl.main || firstOpen);
+  setStatus("Inserted " + key + " template.", "ok");
+}
+
+/* ---- file intake wiring ---- */
+const drop=$("drop"), fileInput=$("fileInput");
+function openPicker(){ fileInput.click(); }
+drop.addEventListener("click", openPicker);
+drop.addEventListener("keydown", (e)=>{ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); openPicker(); } });
+["dragover","dragenter"].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add("drag"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove("drag"); }));
+drop.addEventListener("drop", e=>{ if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+fileInput.addEventListener("change", ()=>{ if (fileInput.files) addFiles(fileInput.files); fileInput.value=""; });
+$("uploadBtn").addEventListener("click", openPicker);
+$("newFileBtn").addEventListener("click", ()=>{
+  const name = prompt("New file path (e.g. sections/intro.tex):", "untitled.tex");
+  if (!name || !name.trim()) return;
+  const p = cleanPath(name.trim());
+  if (getFile(p)){ openInEditor(p); return; }
+  upsertFile(p, encode("")); refreshAll(); openInEditor(p);
+});
+$("templateSelect").addEventListener("change", (e)=>{ if (e.target.value){ applyTemplate(e.target.value); e.target.value=""; } });
+$("downloadZipBtn").addEventListener("click", downloadZip);
+
+/* ---- compile / reset / download / engine ---- */
+$("compileBtn").addEventListener("click", compile);
+$("downloadBtn").addEventListener("click", ()=>{
+  if (!state.lastPdf) return;
+  const name = (state.mainFile||"document").replace(/.*\//,"").replace(/\.(tex|ltx|latex)$/i,"") + ".pdf";
+  const url = URL.createObjectURL(new Blob([state.lastPdf], { type:"application/pdf" }));
+  const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+});
+$("resetBtn").addEventListener("click", ()=>{
+  stopWatching(); if ($("liveStatus")) $("liveStatus").textContent="";
+  for (const m of state.models.values()){ try{ m.dispose(); }catch(e){} }
+  state.files=[]; state.mainFile=null; state.activePath=null; state.openOrder=[]; state.models.clear(); state.dirty.clear(); state.lastPdf=null;
+  if (editor){ try{ editor.setModel(monaco.editor.createModel("","latex")); }catch(e){} }
+  $("monaco").style.display=""; $("editorEmpty").hidden=false; $("editorEmpty").textContent="Open a file from the Files panel, or start from a template.";
+  $("viewer").innerHTML='<div class="empty">Your compiled PDF will appear here.</div>';
+  $("log").textContent="No log yet."; $("pageInfo").textContent=""; hideProgress();
+  $("downloadBtn").disabled=true; $("compileBtn").disabled=true;
+  renderProblems([]); refreshAll();
+});
+document.querySelector('[role="radiogroup"]').addEventListener("change", ()=>{
+  if (state.mainFile) setStatus("Engine set to " + engineLabel(currentEngineKind()) + ". Click Compile.", "");
 });
 
-document.querySelector('[role="radiogroup"]').addEventListener("change", () => {
-  if (mainFile) setStatus("Engine set to " + (currentEngineKind()==="xetex"?"XeLaTeX":"pdfLaTeX") + ". Click Compile.", "");
-});
+/* ---- git wiring ---- */
+$("gitBtn").addEventListener("click", openGit);
+$("gitCloseBtn").addEventListener("click", closeGit);
+$("gitCloneBtn").addEventListener("click", gitClone);
+$("gitPushBtn").addEventListener("click", gitPush);
+$("gitModal").addEventListener("click", (e)=>{ if (e.target.id==="gitModal") closeGit(); });
 
-// ---- Live folder sync (File System Access API; Chrome/Edge) ----
+/* ---- mode + mobile panel tabs ---- */
+$("modeEditor").addEventListener("click", ()=>setMode("editor"));
+$("modeView").addEventListener("click", ()=>setMode("view"));
+$("tabFiles").addEventListener("click", ()=>switchPanel("files"));
+$("tabEditor").addEventListener("click", ()=>switchPanel("editor"));
+$("tabPreview").addEventListener("click", ()=>switchPanel("preview"));
+$("pfAll").addEventListener("click", ()=>setProblemFilter("all"));
+$("pfErr").addEventListener("click", ()=>setProblemFilter("error"));
+$("pfWarn").addEventListener("click", ()=>setProblemFilter("warn"));
+$("pfHint").addEventListener("click", ()=>setProblemFilter("info"));
+
+/* ---- Live folder sync (File System Access API; Chrome/Edge) ---- */
 const openFolderBtn=$("openFolderBtn"), vscodeBtn=$("vscodeBtn"), autoCompileEl=$("autoCompile"), liveStatus=$("liveStatus"), liveUnsupported=$("liveUnsupported");
 const FS_OK = typeof window.showDirectoryPicker === "function";
-const ALLOW_RE = /\.(tex|bib|cls|sty|ltx|def|clo|bbl|txt|tikz|sub|cfg|fd|enc|map|png|jpe?g|gif|pdf|eps|svg)$/i;
-
-vscodeBtn.addEventListener("click", () => window.open("https://vscode.dev/", "_blank", "noopener"));
-if (!FS_OK){ openFolderBtn.disabled = true; liveUnsupported.hidden = false; }
-else { openFolderBtn.addEventListener("click", pickFolder); }
-
-function stopWatching(){ if (watchTimer){ clearInterval(watchTimer); watchTimer = null; } dirHandle = null; lastSig = ""; }
+const ALLOW_RE = /\.(tex|latex|ltx|bib|cls|sty|def|clo|bbl|txt|md|tikz|sub|cfg|fd|enc|map|svg|pdf|eps|png|jpe?g|gif|bmp)$/i;
+let dirHandle=null, watchTimer=null, lastSig="";
+vscodeBtn.addEventListener("click", ()=>window.open("https://vscode.dev/","_blank","noopener"));
+if (!FS_OK){ openFolderBtn.disabled=true; liveUnsupported.hidden=false; } else { openFolderBtn.addEventListener("click", pickFolder); }
+function stopWatching(){ if (watchTimer){ clearInterval(watchTimer); watchTimer=null; } dirHandle=null; lastSig=""; }
 async function walkDir(handle, prefix, out){
   for await (const [name, entry] of handle.entries()){
     if (name.startsWith(".")) continue;
-    const path = prefix ? prefix + "/" + name : name;
-    if (entry.kind === "directory") await walkDir(entry, path, out);
-    else out.push({ path, entry });
+    const path = prefix ? prefix+"/"+name : name;
+    if (entry.kind==="directory") await walkDir(entry, path, out); else out.push({ path, entry });
   }
 }
-async function listFolder(){ const all = []; await walkDir(dirHandle, "", all); return all.filter(e => ALLOW_RE.test(e.path)); }
-async function folderSignature(entries){
-  let sig = "";
-  for (const {path, entry} of entries){ const f = await entry.getFile(); sig += path + ":" + f.size + ":" + f.lastModified + ";"; }
-  return sig;
-}
+async function listFolder(){ const all=[]; await walkDir(dirHandle,"",all); return all.filter(e=>ALLOW_RE.test(e.path)); }
+async function folderSignature(entries){ let sig=""; for (const {path,entry} of entries){ const f=await entry.getFile(); sig+=path+":"+f.size+":"+f.lastModified+";"; } return sig; }
 async function loadFolderIntoProject(entries){
-  const next = [];
-  for (const {path, entry} of entries){
-    const f = await entry.getFile();
-    if (f.size > 25*1024*1024) continue;
-    next.push({ path, bytes: new Uint8Array(await f.arrayBuffer()), isText: TEXT_RE.test(path) });
-  }
-  projectFiles = next; refreshFileUI();
+  const next=[];
+  for (const {path,entry} of entries){ const f=await entry.getFile(); if (f.size>25*1024*1024) continue; next.push({ path, bytes:new Uint8Array(await f.arrayBuffer()), isText:isTextPath(path) }); }
+  for (const m of state.models.values()){ try{ m.dispose(); }catch(e){} }
+  state.files=next; state.models.clear(); state.openOrder=[]; state.activePath=null; state.dirty.clear();
+  refreshAll();
+  const first = state.files.find(f=>TEX_RE.test(f.path)); if (first) openInEditor(state.mainFile||first.path);
 }
 async function pickFolder(){
-  let handle;
-  try { handle = await window.showDirectoryPicker(); }
-  catch(e){ return; } // user cancelled
+  let handle; try { handle = await window.showDirectoryPicker(); } catch(e){ return; }
   dirHandle = handle;
   const entries = await listFolder();
-  if (!entries.length){ liveStatus.textContent = "No .tex files found in that folder."; dirHandle = null; return; }
+  if (!entries.length){ liveStatus.textContent="No TeX files found in that folder."; dirHandle=null; return; }
   lastSig = await folderSignature(entries);
   await loadFolderIntoProject(entries);
-  liveStatus.textContent = "Watching this folder. Edit and save in VS Code to rebuild.";
+  liveStatus.textContent="Watching this folder. Edit and save in VS Code to rebuild.";
   if (watchTimer) clearInterval(watchTimer);
   watchTimer = setInterval(pollFolder, 1500);
-  if (mainFile && autoCompileEl.checked) compile();
+  if (state.mainFile && autoCompileEl.checked) compile();
 }
 async function pollFolder(){
-  if (!dirHandle || compiling) return;
+  if (!dirHandle || state.compiling) return;
   try {
-    const entries = await listFolder();
-    const sig = await folderSignature(entries);
-    if (sig !== lastSig){
-      lastSig = sig;
-      await loadFolderIntoProject(entries);
-      if (mainFile && autoCompileEl.checked) compile();
-    }
-  } catch(e){
-    stopWatching();
-    liveStatus.textContent = "Stopped watching (folder access ended).";
-  }
+    const entries = await listFolder(); const sig = await folderSignature(entries);
+    if (sig !== lastSig){ lastSig=sig; await loadFolderIntoProject(entries); if (state.mainFile && autoCompileEl.checked) compile(); }
+  } catch(e){ stopWatching(); liveStatus.textContent="Stopped watching (folder access ended)."; }
 }
 
-setStatus("Idle. Add a .tex file to begin.", "");
+/* ---- init ---- */
+initMonaco();
+try { const sp=new URLSearchParams(location.search); if (sp.get("mode")==="view"||sp.has("view")) setMode("view"); else setMode(localStorage.getItem("tex_mode")||"editor"); } catch(e){ setMode("editor"); }
+switchPanel("editor");
+refreshAll();
+setStatus("Idle. Add or create a .tex file, clone a repo, or pick a template.", "");
 </script>
 </body>
 </html>

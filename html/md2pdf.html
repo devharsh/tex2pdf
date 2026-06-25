@@ -90,12 +90,12 @@
 <body>
 <a class="skip" href="#main">Skip to preview</a>
 <nav class="topnav">
-  <a class="brand" href="../index.html">TeX Viewer Online</a>
+  <a class="brand" href="../index.html">TeX Editor Online</a>
   <div class="links">
     <a href="../index.html">TeX to PDF</a>
     <a href="md2pdf.html" class="active" aria-current="page">MD to PDF</a>
     <a href="beautify.html">Beautify</a>
-    <a href="diff.html">Compare</a>
+    <a href="diff.html">File Compare</a>
     <a href="imgcompare.html">Image Compare</a>
     <a href="pdfunlock.html">PDF Unlock</a>
     <a href="cyberchef.html">CyberChef</a>
@@ -131,17 +131,39 @@
     </div>
 
     <div class="card">
-      <p class="label">Options</p>
+      <p class="label">Output</p>
+      <label class="chk"><input type="radio" name="omode" id="modeHtml" checked> Quick view (Markdown to PDF)</label>
+      <label class="chk"><input type="radio" name="omode" id="modePaper"> Research paper (LaTeX, accessible PDF)</label>
+      <p class="note" style="margin-top:6px">Research paper mode converts Markdown to LaTeX and compiles a tagged, vector-graphics PDF with the same engine as the editor. Add a YAML front matter block for title, author, abstract.</p>
+    </div>
+
+    <div class="card htmlmode-only">
+      <p class="label">HTML options</p>
       <label class="chk"><input type="checkbox" id="live" checked> Live preview while typing</label>
       <label class="chk"><input type="checkbox" id="hl" checked> Highlight code</label>
       <label class="chk"><input type="checkbox" id="math" checked> Render math (KaTeX)</label>
     </div>
 
-    <button class="btn" id="pdf">Save as PDF</button>
-    <div class="row">
+    <div class="card papermode-only" hidden>
+      <p class="label">Paper engine</p>
+      <select id="paperEngine" class="livefile" style="margin-top:0" aria-label="LaTeX engine">
+        <option value="xetex" selected>XeLaTeX (recommended)</option>
+        <option value="pdftex">pdfLaTeX</option>
+        <option value="luatex">LuaLaTeX (best tagging)</option>
+      </select>
+    </div>
+
+    <button class="btn htmlmode-only" id="pdf">Save as PDF</button>
+    <div class="row htmlmode-only">
       <button class="btn secondary" id="html">Download HTML</button>
       <button class="btn secondary" id="copy">Copy HTML</button>
       <button class="btn secondary" id="clear">Clear</button>
+    </div>
+
+    <button class="btn papermode-only" id="buildPaper" hidden>Build paper (PDF)</button>
+    <div class="row papermode-only" hidden>
+      <button class="btn secondary" id="downloadPdf" disabled>Download PDF</button>
+      <button class="btn secondary" id="clearPaper">Clear</button>
     </div>
 
     <div class="status" id="status" role="status" aria-live="polite">Load a .md file, open a folder, or paste Markdown.</div>
@@ -156,7 +178,8 @@
       </div>
       <div class="pane">
         <h2>Preview</h2>
-        <div class="paper"><div class="md-body" id="out"><p class="empty">Preview appears here.</p></div></div>
+        <div class="paper" id="htmlPaper"><div class="md-body" id="out"><p class="empty">Preview appears here.</p></div></div>
+        <div class="paper papermode-only" id="pdfPaper" hidden style="background:#525659;padding:14px"><div class="empty" style="color:#e6e9ec">Build a paper to see the PDF here.</div></div>
       </div>
     </div>
   </main>
@@ -166,6 +189,52 @@
   <span>Runs fully client side. Powered by marked, DOMPurify, highlight.js, and KaTeX.</span>
   <span>No tracking. No file uploads to any server.</span>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script type="module">
+import { BusyTexRunner, PdfLatex, XeLatex, LuaLatex } from "../core/texlyre-busytex.js";
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+const BASE = new URL("../core/busytex", document.baseURI).href;
+const TEXMF = new URL("../core/texmf", document.baseURI).href;
+const DATA = ["texlive-basic.js"];
+let runner=null, tools={}, bundled=null;
+const fetched = new Map();
+const CTANP="https://api.allorigins.win/raw?url=", CTANB="https://mirrors.ctan.org"; const fdirs=new Set();
+async function fetchPkg(n){ n=n.replace(/^\.?\//,""); if(fetched.has(n))return true;
+  const base=n.replace(/\.[^.]+$/,""), stem=base.replace(/[0-9].*$/,"");
+  const dirs=[...fdirs,"macros/latex/contrib/"+base,"macros/latex/required/"+base,"macros/latex/base","macros/latex/required/tools","macros/latex/contrib/"+stem,"macros/generic/"+base,"fonts/"+base];
+  const tries=[{dir:null,url:"https://cdn.jsdelivr.net/gh/borisveytsman/acmart@master/"+n}].concat(dirs.map(d=>({dir:d,url:CTANP+encodeURIComponent(CTANB+"/"+d+"/"+n)})));
+  const isText=/\.(cls|sty|def|clo|bib|tex|fd|cfg|bst|ldf)$/i.test(n);
+  for(const t of tries){ try{ const r=await fetch(t.url,{cache:"force-cache"}); if(!r.ok)continue; const b=new Uint8Array(await r.arrayBuffer()); if(b.length<8)continue; if(isText){const head=new TextDecoder().decode(b.slice(0,400)).toLowerCase(); if(head.includes("<!doctype html")||head.includes("<html"))continue;} fetched.set(n, isText?new TextDecoder().decode(b):b); if(t.dir)fdirs.add(t.dir); return true; }catch(e){} } return false; }
+async function getBundled(){ if(bundled)return bundled; bundled=[]; try{ const m=await fetch(TEXMF+"/manifest.json",{cache:"no-store"}).then(r=>r.json()); for(const n of (m.packages||[])) bundled.push({path:n, content: await fetch(TEXMF+"/"+n,{cache:"no-store"}).then(r=>r.text())}); }catch(e){} return bundled; }
+async function getRunner(){ if(runner)return runner; const r=new BusyTexRunner({busytexBasePath:BASE,engineMode:"combined",preloadDataPackages:DATA,catalogDataPackages:DATA}); await r.initialize(); runner=r; tools.pdftex=new PdfLatex(r); tools.xetex=new XeLatex(r); try{tools.luatex=new LuaLatex(r);}catch(e){tools.luatex=tools.xetex;} return r; }
+window.__texCompile = async function(latex, engine, onstage){
+  if(onstage) onstage("Starting the TeX engine (first run downloads ~125 MB)...");
+  await getRunner(); const pkgs=await getBundled();
+  const tool=tools[engine]||tools.xetex; let r=null,last=null,i=0;
+  while(i++<8){
+    const add=pkgs.slice(); for(const [p,c] of fetched) add.push({path:p,content:c});
+    if(onstage) onstage("Compiling with "+engine+" (pass "+i+")...");
+    r=await tool.compile({input:latex, mainTexPath:"paper.tex", additionalFiles:add, dataPackagesJs:DATA});
+    if(r.success) break;
+    const m=(r.log||"").match(/File `([^']+)' not found/); const name=m?m[1].trim():null;
+    if(!name||name===last) break; last=name; if(onstage) onstage("Fetching "+name+"...");
+    if(!(await fetchPkg(name) || (!/\.\w+$/.test(name) && await fetchPkg(name+".sty")))) break;
+  }
+  return r;
+};
+window.__renderPdf = async function(bytes, el){
+  if(!window.pdfjsLib){ el.innerHTML='<div class="empty">PDF viewer failed to load.</div>'; return 0; }
+  el.innerHTML=""; const doc=await pdfjsLib.getDocument({data:bytes.slice(0)}).promise;
+  const tw=Math.min(el.clientWidth-28,900), dpr=window.devicePixelRatio||1;
+  for(let n=1;n<=doc.numPages;n++){ const p=await doc.getPage(n); const b=p.getViewport({scale:1}); const vp=p.getViewport({scale:(tw/b.width)*dpr});
+    const c=document.createElement("canvas"); c.width=Math.floor(vp.width); c.height=Math.floor(vp.height);
+    c.style.cssText="display:block;margin:0 auto 14px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.5);max-width:100%;height:auto;width:"+Math.floor(vp.width/dpr)+"px";
+    c.setAttribute("role","img"); c.setAttribute("aria-label","Page "+n); el.appendChild(c);
+    await p.render({canvasContext:c.getContext("2d"), viewport:vp}).promise; }
+  return doc.numPages;
+};
+</script>
 
 <script>
 (function(){
@@ -301,6 +370,138 @@
   }
 
   src.value="# Markdown to PDF\n\nLoad a `.md` file, open a folder, or paste Markdown, then click **Save as PDF**.\n\n## Features\n\n- GitHub-flavored Markdown (tables, task lists, strikethrough)\n- Code highlighting\n- Math with `$...$`\n- Live VS Code folder editing\n\n```python\ndef hello(name):\n    return f\"Hello, {name}!\"\n```\n\n| Tool | Purpose |\n| --- | --- |\n| marked | parse Markdown |\n| KaTeX | render math |\n\nInline math: $E = mc^2$ and a block:\n\n$$\\int_0^1 x^2\\,dx = \\tfrac{1}{3}$$\n\n> Everything runs in your browser. Nothing is uploaded.\n";
+  // ===== Research paper mode: Markdown -> LaTeX -> busytex PDF =====
+  var lastPdfBytes=null, lastMeta={};
+  function escTeX(s){
+    return String(s)
+      .replace(/\\/g,"\\textbackslash ")
+      .replace(/([{}])/g,"\\$1")
+      .replace(/([&%$#_])/g,"\\$1")
+      .replace(/~/g,"\\textasciitilde ")
+      .replace(/\^/g,"\\textasciicircum ");
+  }
+  function protectMath(md){
+    var store=[];
+    md=md.replace(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]/g, function(m){ store.push(m.slice(0,2)==="$$" ? ("\\["+m.slice(2,-2)+"\\]") : m); return "xMathHolderx"+(store.length-1)+"x"; });
+    md=md.replace(/\$[^$\n]+?\$|\\\([\s\S]*?\\\)/g, function(m){ store.push(m); return "xMathHolderx"+(store.length-1)+"x"; });
+    return {md:md, store:store};
+  }
+  function mathAwareEscape(s){
+    var re=/(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\])/g, last=0, m, out="";
+    while((m=re.exec(s))){ out+=escTeX(s.slice(last,m.index)); var seg=m[0]; out+= seg.slice(0,2)==="$$" ? "\\["+seg.slice(2,-2)+"\\]" : seg; last=re.lastIndex; }
+    return out+escTeX(s.slice(last));
+  }
+  function inlineTeX(tokens){
+    if(!tokens) return "";
+    return tokens.map(function(t){
+      switch(t.type){
+        case "text": return t.tokens?inlineTeX(t.tokens):mathAwareEscape(t.text);
+        case "strong": return "\\textbf{"+inlineTeX(t.tokens)+"}";
+        case "em": return "\\emph{"+inlineTeX(t.tokens)+"}";
+        case "del": return inlineTeX(t.tokens);
+        case "codespan": return "\\texttt{"+escTeX(t.text)+"}";
+        case "br": return "\\\\\n";
+        case "link": return "\\href{"+t.href+"}{"+inlineTeX(t.tokens)+"}";
+        case "image": return "\\includegraphics[width=0.8\\linewidth]{"+t.href+"}";
+        case "escape": return escTeX(t.text);
+        case "html": return "";
+        default: return t.raw?mathAwareEscape(t.raw):"";
+      }
+    }).join("");
+  }
+  function figureTeX(img){
+    var raster=/\.(png|jpe?g|gif|bmp|tiff?|webp)$/i.test(img.href||"");
+    return "\\begin{figure}[htbp]\\centering\n"+(raster?"% raster image; prefer vector (PDF, EPS, SVG)\n":"")+
+      "\\includegraphics[width=0.8\\linewidth]{"+img.href+"}\n"+(img.text?"\\caption{"+escTeX(img.text)+"}\n":"")+"\\end{figure}\n\n";
+  }
+  function listTeX(tok){
+    var env=tok.ordered?"enumerate":"itemize", s="\\begin{"+env+"}\n";
+    tok.items.forEach(function(it){ var inner=it.tokens?blocksTeX(it.tokens).trim():inlineTeX(it.tokens); s+="  \\item "+inner+"\n"; });
+    return s+"\\end{"+env+"}\n";
+  }
+  function cell(c){ return inlineTeX(c.tokens||[{type:"text",text:c.text||""}]); }
+  function tableTeX(tok){
+    var align=(tok.align||[]).map(function(a){return a==="center"?"c":a==="right"?"r":"l";});
+    var spec=""; for(var i=0;i<tok.header.length;i++) spec+=(align[i]||"l");
+    var s="\\begin{table}[htbp]\\centering\n\\begin{tabular}{"+spec+"}\n\\toprule\n";
+    s+=tok.header.map(function(h){return "\\textbf{"+cell(h)+"}";}).join(" & ")+" \\\\\n\\midrule\n";
+    tok.rows.forEach(function(r){ s+=r.map(cell).join(" & ")+" \\\\\n"; });
+    return s+"\\bottomrule\n\\end{tabular}\n\\end{table}\n";
+  }
+  function blocksTeX(tokens){
+    var o="";
+    tokens.forEach(function(t){
+      switch(t.type){
+        case "heading": var c=["section","subsection","subsubsection","paragraph","subparagraph","subparagraph"][t.depth-1]||"paragraph"; o+="\\"+c+"{"+inlineTeX(t.tokens)+"}\n\n"; break;
+        case "paragraph": if(t.tokens&&t.tokens.length===1&&t.tokens[0].type==="image") o+=figureTeX(t.tokens[0]); else o+=inlineTeX(t.tokens)+"\n\n"; break;
+        case "text": o+=(t.tokens?inlineTeX(t.tokens):mathAwareEscape(t.text))+"\n\n"; break;
+        case "list": o+=listTeX(t)+"\n"; break;
+        case "code": o+="\\begin{verbatim}\n"+t.text+"\n\\end{verbatim}\n\n"; break;
+        case "blockquote": o+="\\begin{quote}\n"+blocksTeX(t.tokens)+"\\end{quote}\n\n"; break;
+        case "table": o+=tableTeX(t)+"\n"; break;
+        case "hr": o+="\\par\\noindent\\rule{\\linewidth}{0.4pt}\\par\\medskip\n\n"; break;
+        case "space": break;
+        case "html": break;
+        default: if(t.tokens) o+=blocksTeX(t.tokens); else if(t.text) o+=mathAwareEscape(t.text)+"\n\n";
+      }
+    });
+    return o;
+  }
+  function parseFrontMatter(md){
+    var meta={}, body=md, m=md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+    if(m){ body=md.slice(m[0].length); m[1].split(/\r?\n/).forEach(function(line){ var i=line.indexOf(":"); if(i>0) meta[line.slice(0,i).trim()]=line.slice(i+1).trim().replace(/^["']|["']$/g,""); }); }
+    return {meta:meta, body:body};
+  }
+  function buildPreamble(meta){
+    var cls=meta.documentclass||"article";
+    var p="\\DocumentMetadata{pdfstandard=ua-2, lang=en-US, testphase={phase-III}}\n";
+    p+="\\documentclass[11pt]{"+cls+"}\n\\usepackage{iftex}\n\\ifPDFTeX\\usepackage[T1]{fontenc}\\usepackage[utf8]{inputenc}\\fi\n";
+    p+="\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage[hidelinks]{hyperref}\n\\usepackage{cleveref}\n";
+    p+="\\title{"+(meta.title?escTeX(meta.title):"Untitled")+"}\n";
+    if(meta.author) p+="\\author{"+escTeX(meta.author)+"}\n";
+    p+="\\date{\\today}\n\\begin{document}\n\\maketitle\n";
+    if(meta.abstract) p+="\\begin{abstract}\n"+escTeX(meta.abstract)+"\n\\end{abstract}\n";
+    return p+"\n";
+  }
+  async function buildPaper(){
+    var md=src.value; if(!md.trim()){ setStatus("Add some Markdown first.","err"); return; }
+    if(!window.__texCompile){ setStatus("Engine still loading, try again in a moment.","err"); return; }
+    setStatus("Preparing...",""); await ensureCore();
+    var fm=parseFrontMatter(md); lastMeta=fm.meta;
+    var prot=protectMath(fm.body);
+    var tokens=window.marked.lexer(prot.md);
+    var body=blocksTeX(tokens).replace(/\[@([^\]]+)\]/g,function(_,inner){ var keys=inner.split(/[;,]\s*/).map(function(k){return k.replace(/^@/,"").trim();}).filter(Boolean).join(","); return "\\cite{"+keys+"}"; });
+    var latex=buildPreamble(fm.meta)+body+"\n\\end{document}\n";
+    latex=latex.replace(/xMathHolderx(\d+)x/g,function(_,i){ return prot.store[+i]; });
+    $("buildPaper").disabled=true;
+    try{
+      var r=await window.__texCompile(latex, $("paperEngine").value, function(msg){ setStatus(msg,""); });
+      if(r&&r.success&&r.pdf&&r.pdf.length){
+        lastPdfBytes=r.pdf.slice(0);
+        var n=await window.__renderPdf(r.pdf, $("pdfPaper"));
+        $("downloadPdf").disabled=false;
+        setStatus("Built a "+n+"-page PDF ("+(r.pdf.length/1024).toFixed(0)+" KB).","ok");
+      } else {
+        var log=(r&&r.log)?r.log.replace(/&/g,"&amp;").replace(/</g,"&lt;").slice(-4000):"No log returned.";
+        $("pdfPaper").innerHTML='<pre style="color:#e6e9ec;white-space:pre-wrap;font-size:12px;padding:14px;margin:0">'+log+'</pre>';
+        setStatus("Compilation failed. See the log in the preview.","err");
+      }
+    }catch(e){ setStatus("Error: "+(e&&e.message||e),"err"); }
+    finally{ $("buildPaper").disabled=false; }
+  }
+  function setOutputMode(m){
+    var paper=(m==="paper");
+    document.querySelectorAll(".papermode-only").forEach(function(e){ e.hidden=!paper; });
+    document.querySelectorAll(".htmlmode-only").forEach(function(e){ e.hidden=paper; });
+    $("htmlPaper").hidden=paper; $("pdfPaper").hidden=!paper;
+  }
+  $("modeHtml").addEventListener("change",function(){ if(this.checked) setOutputMode("html"); });
+  $("modePaper").addEventListener("change",function(){ if(this.checked) setOutputMode("paper"); });
+  $("buildPaper").addEventListener("click",buildPaper);
+  $("downloadPdf").addEventListener("click",function(){ if(!lastPdfBytes)return; var nm=((lastMeta.title||"paper").replace(/[^\w.-]+/g,"_"))+".pdf"; var url=URL.createObjectURL(new Blob([lastPdfBytes],{type:"application/pdf"})); var a=document.createElement("a"); a.href=url; a.download=nm; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},4000); });
+  $("clearPaper").addEventListener("click",function(){ lastPdfBytes=null; $("downloadPdf").disabled=true; $("pdfPaper").innerHTML='<div class="empty" style="color:#e6e9ec">Build a paper to see the PDF here.</div>'; setStatus("Cleared.",""); });
+  setOutputMode("html");
+
   render();
 })();
 </script>

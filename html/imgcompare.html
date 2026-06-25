@@ -71,12 +71,12 @@
 <body>
 <a class="skip" href="#main">Skip to comparison</a>
 <nav class="topnav">
-  <a class="brand" href="../index.html">TeX Viewer Online</a>
+  <a class="brand" href="../index.html">TeX Editor Online</a>
   <div class="links">
     <a href="../index.html">TeX to PDF</a>
     <a href="md2pdf.html">MD to PDF</a>
     <a href="beautify.html">Beautify</a>
-    <a href="diff.html">Compare</a>
+    <a href="diff.html">File Compare</a>
     <a href="imgcompare.html" class="active" aria-current="page">Image Compare</a>
     <a href="pdfunlock.html">PDF Unlock</a>
     <a href="cyberchef.html">CyberChef</a>
@@ -108,6 +108,7 @@
 
     <button class="btn" id="run" disabled>Compute similarity</button>
     <label class="chk"><input type="checkbox" id="showDiff" checked> Show difference map</label>
+    <button class="btn secondary" id="expand" disabled>Expand view</button>
     <button class="btn secondary" id="clear">Clear</button>
 
     <div class="status" id="status" role="status" aria-live="polite">Load image A and image B to compare.</div>
@@ -155,6 +156,35 @@
   <span>Runs fully client side. Images are analysed in your browser with canvas and PDF.js.</span>
   <span>No tracking. No file uploads to any server.</span>
 </footer>
+
+<div id="expandOverlay" hidden role="dialog" aria-modal="true" aria-label="Expanded image comparison"
+     style="position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:50;display:flex;flex-direction:column">
+  <style>
+    #expandOverlay[hidden]{display:none !important}
+    #expandOverlay .btn[aria-pressed="true"]{background:rgba(31,111,235,.22);border-color:var(--accent);color:var(--text)}
+    #expandOverlay .expBox canvas{max-width:100%;max-height:100%;height:auto;width:auto;display:block;background:#fff}
+    @media (max-width:760px){ #expBody{grid-template-columns:1fr !important} }
+  </style>
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel);flex-wrap:wrap">
+    <strong style="color:var(--text)">Expanded view</strong>
+    <span style="flex:1"></span>
+    <div role="group" aria-label="Layout" style="display:flex;gap:6px">
+      <button class="btn secondary" id="expSide" aria-pressed="true" style="width:auto;padding:8px 12px">Side by side</button>
+      <button class="btn secondary" id="expStack" aria-pressed="false" style="width:auto;padding:8px 12px">Top / bottom</button>
+    </div>
+    <button class="btn" id="expExit" style="width:auto;padding:8px 16px">Exit</button>
+  </div>
+  <div id="expBody" style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;overflow:auto;min-height:0">
+    <figure style="margin:0;display:flex;flex-direction:column;min-height:0">
+      <figcaption style="color:var(--muted);font-size:13px;margin-bottom:6px">Image A</figcaption>
+      <div class="expBox" id="expA" style="flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;border:1px solid var(--border);border-radius:8px;min-height:0"></div>
+    </figure>
+    <figure style="margin:0;display:flex;flex-direction:column;min-height:0">
+      <figcaption style="color:var(--muted);font-size:13px;margin-bottom:6px">Image B</figcaption>
+      <div class="expBox" id="expB" style="flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;border:1px solid var(--border);border-radius:8px;min-height:0"></div>
+    </figure>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -317,6 +347,7 @@
       renderMeta(slots.B, slots.A, $("metaB"));
       setStatus("Loaded image "+which+".","ok");
       $("run").disabled = !(slots.A && slots.B);
+      $("expand").disabled = !(slots.A && slots.B);
       if(slots.A && slots.B) compute();
     }catch(err){ setStatus("Image "+which+": "+err.message,"err"); }
   }
@@ -364,9 +395,42 @@
   $("clear").addEventListener("click",function(){
     slots.A=null; slots.B=null; $("fileA").value=""; $("fileB").value="";
     $("imgA").innerHTML='<span class="ph">Image A preview</span>'; $("imgB").innerHTML='<span class="ph">Image B preview</span>';
-    $("metaA").innerHTML=""; $("metaB").innerHTML=""; $("results").hidden=true; $("run").disabled=true;
+    $("metaA").innerHTML=""; $("metaB").innerHTML=""; $("results").hidden=true; $("run").disabled=true; $("expand").disabled=true; closeExpand();
     setStatus("Cleared. Load image A and image B to compare.","");
   });
+
+  // ---- Expand view: large side-by-side or top/bottom, then exit back to details ----
+  var expandLayout="side", lastFocus=null;
+  function drawInto(boxId, slot){
+    var box=$(boxId); box.innerHTML="";
+    if(!slot||!slot.canvas){ box.innerHTML='<span style="color:var(--muted)">No image</span>'; return; }
+    var c=document.createElement("canvas"); c.width=slot.canvas.width; c.height=slot.canvas.height;
+    c.getContext("2d").drawImage(slot.canvas,0,0);
+    c.setAttribute("role","img"); c.setAttribute("aria-label", boxId==="expA"?"Image A, expanded":"Image B, expanded");
+    box.appendChild(c);
+  }
+  function setExpandLayout(l){
+    expandLayout=l; var body=$("expBody");
+    if(l==="stack"){ body.style.gridTemplateColumns="1fr"; body.style.gridAutoRows="minmax(0,1fr)"; }
+    else { body.style.gridTemplateColumns="1fr 1fr"; body.style.gridAutoRows=""; }
+    $("expSide").setAttribute("aria-pressed", l==="side"?"true":"false");
+    $("expStack").setAttribute("aria-pressed", l==="stack"?"true":"false");
+  }
+  function openExpand(){
+    if(!(slots.A&&slots.B)) return;
+    drawInto("expA",slots.A); drawInto("expB",slots.B); setExpandLayout(expandLayout);
+    lastFocus=document.activeElement; $("expandOverlay").hidden=false; $("expExit").focus();
+  }
+  function closeExpand(){
+    var o=$("expandOverlay"); if(!o||o.hidden) return; o.hidden=true;
+    $("expA").innerHTML=""; $("expB").innerHTML="";
+    if(lastFocus&&lastFocus.focus){ try{ lastFocus.focus(); }catch(e){} }
+  }
+  $("expand").addEventListener("click",openExpand);
+  $("expExit").addEventListener("click",closeExpand);
+  $("expSide").addEventListener("click",function(){ setExpandLayout("side"); });
+  $("expStack").addEventListener("click",function(){ setExpandLayout("stack"); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeExpand(); });
 })();
 </script>
 </body>

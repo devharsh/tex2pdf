@@ -1021,9 +1021,14 @@ function setIndeterminate(){ $("progress").classList.add("indeterminate"); $("pf
 async function getBundled(){
   if (bundled) return bundled;
   bundled = [];
+  const BIN = /\.(otf|ttf|ttc|tfm|vf|pfb|pfm|afm|ofm|ovf|dfont|pro)$/i;  // binary font files must not be read as text
   try {
     const mani = await fetch(TEXMF + "/manifest.json", { cache: "no-store" }).then(r=>r.json());
-    for (const name of (mani.packages || [])){ const content = await fetch(TEXMF + "/" + name, { cache: "no-store" }).then(r=>r.text()); bundled.push({ path:name, content }); }
+    for (const name of (mani.packages || [])){
+      const resp = await fetch(TEXMF + "/" + name, { cache: "no-store" });
+      const content = BIN.test(name) ? new Uint8Array(await resp.arrayBuffer()) : await resp.text();
+      bundled.push({ path:name, content });
+    }
   } catch(e){ console.warn("Bundle load failed:", e); }
   return bundled;
 }

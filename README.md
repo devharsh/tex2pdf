@@ -172,6 +172,7 @@ The home page (`index.html`) and `404.html` stay at the repo root because GitHub
 - pdfLaTeX cannot build missing bitmap fonts; use XeLaTeX (the default) for those documents.
 - Coverage is the basic tier plus the bundled extras; arbitrary CTAN packages are not all available (see Package coverage).
 - Each visitor downloads the assets once. On GitHub Pages the soft bandwidth limit is about 100 GB per month, roughly 800 first-time loads.
+- Very heavy publisher classes, in particular ACM `acmart`, are not supported in-browser. They pull in dozens of packages plus commercial fonts (Libertine, newtx, Inconsolata, unicode-math) and TikZ, and the WebAssembly engine cannot reliably register those fonts. Compile those documents with a full TeX (a local TeX Live or Overleaf); the editor is still useful for writing and managing the source. Lighter classes such as IEEEtran are realistic in-browser.
 
 ## Privacy
 

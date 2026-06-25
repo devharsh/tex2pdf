@@ -61,6 +61,27 @@ The bundled Cyber Swiss Army Knife (by GCHQ) for encoding, encryption, compressi
 
 Most LaTeX setups need a local TeX install or a cloud service that uploads your files. tex2pdf does neither. A TeX engine (busytex) plus a TeX Live package set are shipped as static files and run client side, so compilation is private and self contained.
 
+## How it compares
+
+TeX Editor Online fills a specific niche: a free, private, no-account, open-source editor that compiles in your browser. It deliberately trades cloud features (AI, real-time collaboration) and full TeX Live coverage for privacy and zero setup. This is an honest comparison; pricing is approximate as of 2026 and changes often, so check each tool's site.
+
+| Capability | TeX Editor Online | Overleaf | Bibby AI | VS Code + LaTeX Workshop | TeXStudio | Papeeria |
+| --- | --- | --- | --- | --- | --- | --- |
+| Runs in the browser, no install | Yes | Yes | Yes | No (desktop) | No (desktop) | Yes |
+| No account required | Yes | No | No | Yes | Yes | No |
+| Compiles locally; nothing uploaded | Yes | No (cloud) | No (cloud) | Yes (local) | Yes (local) | No (cloud) |
+| Open source | Yes (AGPL-3.0) | Partly (self-host Community Edition) | No | Yes (Code-OSS + extension) | Yes (GPL) | No |
+| Price | Free | Free tier + paid | Free tier + paid | Free | Free | Free tier + paid |
+| Git (GitHub / GitLab) | Yes, in browser | Yes (paid) | Not advertised | Yes | External tool | Yes |
+| Real-time collaboration | No (use Git) | Yes | Planned | Via Live Share | No | Yes |
+| AI assistance | No | No | Yes | Via extensions | No | No |
+| Full TeX Live / heavy classes (e.g. acmart, large theses) | Limited (basic set plus bundled extras) | Yes | Yes | Yes (local) | Yes (local) | Yes |
+| Telemetry / tracking | None | Yes | Yes | Optional telemetry | None | Yes |
+
+Paid plans, as a rough 2026 guide: Overleaf premium starts around $7 to $13 per month depending on billing, and Papeeria private projects start around $5 per month; verify current numbers on each vendor's pricing page.
+
+In short: choose TeX Editor Online when privacy, no sign-up, and zero install matter most and your document uses mainstream packages; choose Overleaf, Bibby AI, or Papeeria for cloud collaboration, AI help, or heavy publisher classes; choose VS Code or TeXStudio for a full local toolchain.
+
 ## Features
 
 - A three-panel editor: file tree, a Monaco (VS Code) editor with LaTeX syntax, and a live PDF preview.

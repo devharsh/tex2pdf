@@ -87,12 +87,12 @@
 <body>
 <a class="skip" href="#main">Skip to preview</a>
 <nav class="topnav">
-  <a class="brand" href="../index.html">TeX Editor Online</a>
+  <a class="brand" href="../index.html">TeX Viewer Online</a>
   <div class="links">
     <a href="../index.html">TeX to PDF</a>
     <a href="md2pdf.html">MD to PDF</a>
     <a href="beautify.html">Beautify</a>
-    <a href="diff.html">File Compare</a>
+    <a href="diff.html">Compare</a>
     <a href="imgcompare.html">Image Compare</a>
     <a href="pdfunlock.html" class="active" aria-current="page">PDF Unlock</a>
     <a href="cyberchef.html">CyberChef</a>
@@ -363,8 +363,12 @@
     const doc=await PDFDocument.load(orig,{updateMetadata:false});
     const ctx=doc.context;
     const acro=doc.catalog.lookupMaybe(PDFName.of("AcroForm"), PDFDict);
-    const rep={ mode:"keep", cleared:0, locks:0, signed:false, certified:false, pages:doc.getPageCount() };
-    if(acro){ const sf=acro.lookupMaybe(PDFName.of("SigFlags"), PDFNumber); if(sf && (sf.asNumber()&1)) rep.signed=true; }
+    const rep={ mode:"keep", cleared:0, locks:0, signed:false, certified:false, sigFields:0, pages:doc.getPageCount() };
+    if(acro){
+      const sf=acro.lookupMaybe(PDFName.of("SigFlags"), PDFNumber); if(sf && (sf.asNumber()&1)) rep.signed=true;
+      const fl0=acro.lookupMaybe(PDFName.of("Fields"), PDFArray);
+      if(fl0) for(let i=0;i<fl0.size();i++){ const f0=fl0.lookup(i, PDFDict); if(f0){ const t0=f0.get(PDFName.of("FT")); if(t0 && t0.toString()==="/Sig") rep.sigFields++; } }
+    }
     if(doc.catalog.has(PDFName.of("Perms"))) rep.certified=true;
     const modified=[];
     if(acro){
@@ -483,7 +487,12 @@
         if(r.noop){
           reportCard.style.display="none"; lastPdf=out.slice(0); pwCard.style.display="none";
           await renderPdf(out); downloadBtn.disabled=false;
-          setStatus("No read-only form fields found. The form may already be fillable, or it has no fillable fields.","ok");
+          if(rep.signed || rep.sigFields){
+            const n=rep.sigFields||0;
+            setStatus("This PDF is signed"+(n?(" ("+n+" signature field"+(n===1?"":"s")+")"):"")+" and has no read-only fields for this mode to clear. The signature keeps the filled content locked. To edit it, change Mode above to \"Make fully editable\" (flatten keeps the signatures as a picture; remove deletes them), then Unlock again.","busy");
+          } else {
+            setStatus("No read-only form fields found; this form is already fillable. If you still cannot edit it, switch Mode to \"Make fully editable\".","ok");
+          }
           return;
         }
       } else {

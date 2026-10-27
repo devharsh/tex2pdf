@@ -38,3 +38,7 @@ Loaded at runtime from a CDN for in-browser GitHub and GitLab access (clone, com
 ## On-demand classes
 
 The editor can fetch publisher document classes (for example IEEEtran, acmart, llncs, mdpi, elsarticle) on demand from CORS-enabled CDN mirrors of their upstream repositories. Those files remain under their own licenses, typically the LaTeX Project Public License (LPPL). They are fetched into the browser at compile time and are not redistributed in this repository.
+
+## CyberChef
+
+Files: everything in `cyberchef/`. CyberChef v11.5.0 by GCHQ, the unmodified release build attached to https://github.com/gchq/CyberChef/releases/tag/v11.5.0, with `CyberChef_v11.5.0.html` renamed to `index.html`. Crown Copyright, Apache License 2.0. https://github.com/gchq/CyberChef

@@ -53,7 +53,7 @@ Unlock PDFs for editing in your browser. Keep an existing signature cryptographi
 
 ### CyberChef (`html/cyberchef.html`)
 
-The bundled Cyber Swiss Army Knife (by GCHQ) for encoding, encryption, compression, data formats, and hundreds of other operations, running locally with no server. Its modules load on demand when you open the tool.
+The bundled Cyber Swiss Army Knife (by GCHQ) for encoding, encryption, compression, data formats, and hundreds of other operations, running locally with no server (CyberChef v11.5.0). Its modules load on demand when you open the tool. A recipe link such as `html/cyberchef.html#recipe=...&input=...` opens with that recipe and input already loaded.
 
 ![CyberChef running locally: operations list, recipe area, and input and output panels](screenshots/cyberchef.png)
 

@@ -15,7 +15,7 @@
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
-/*! js-yaml 4.1.1 https://github.com/nodeca/js-yaml @license MIT */
+/*! js-yaml 5.4.1 https://github.com/nodeca/js-yaml @license MIT */
 
 /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
 
@@ -107,6 +107,12 @@
  */
 
 /**
+ * @author CyberChef
+ * @copyright Crown Copyright 2026
+ * @license Apache-2.0
+ */
+
+/**
  * @author Dachande663 [dachande663@gmail.com]
  * @copyright Crown Copyright 2018
  * @license Apache-2.0
@@ -140,6 +146,12 @@
 /**
  * @author HarelKatz [github.com/HarelKatz]
  * @copyright Crown Copyright 2026
+ * @license Apache-2.0
+ */
+
+/**
+ * @author Imantas Lukenskas [imantas@lukenskas.dev]
+ * @copyright Imantas Lukenskas 2026
  * @license Apache-2.0
  */
 
@@ -577,6 +589,19 @@
  */
 
 /**
+ * @license Apache-2.0
+ */
+
+/**
+ * A class for detecting encodings, file types and byte frequencies and
+ * speculatively executing recipes.
+ *
+ * @author n1474335 [n1474335@gmail.com]
+ * @copyright Crown Copyright 2018
+ * @license Apache-2.0
+ */
+
+/**
  * Base32 resources.
  *
  * @author Peter C-S [petercs@purelymail.com]
@@ -864,6 +889,16 @@
  */
 
 /**
+ * Stream class for parsing binary protocols.
+ *
+ * @author n1474335 [n1474335@gmail.com]
+ * @author tlwr [toby@toby.codes]
+ * @copyright Crown Copyright 2018
+ * @license Apache-2.0
+ *
+ */
+
+/**
  * Various delimiters
  *
  * @author n1474335 [n1474335@gmail.com]
@@ -918,4 +953,4 @@
 
 //! moment.js locale configuration
 
-//! version : 0.6.2
+//! version : 0.6.3

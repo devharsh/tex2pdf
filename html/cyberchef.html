@@ -43,12 +43,12 @@
   </div>
 </nav>
 <div class="bar">
-  <span>CyberChef (the Cyber Swiss Army Knife) bundled and running locally. Nothing is uploaded.</span>
-  <span><a href="../cyberchef/index.html" target="_blank" rel="noopener">Open in a full tab</a></span>
+  <span>CyberChef v11.5.0 (the Cyber Swiss Army Knife) bundled and running locally. Nothing is uploaded.</span>
+  <span><a id="fulltab" href="../cyberchef/index.html" target="_blank" rel="noopener">Open in a full tab</a></span>
 </div>
 
 <div class="open" id="opener">
-  <p style="margin:0;color:var(--muted);max-width:560px">CyberChef is about 70 MB and loads its modules on demand. Click below to load it in this page (or open it in a full tab from the link above).</p>
+  <p style="margin:0;color:var(--muted);max-width:560px">CyberChef is about 80 MB and loads its modules on demand. Click below to load it in this page (or open it in a full tab from the link above).</p>
   <button class="btn" id="load">Load CyberChef</button>
 </div>
 
@@ -59,17 +59,22 @@
 <script>
   (function(){
     var loaded=false;
+    // A recipe link (cyberchef.html#recipe=...&input=...) is passed through to CyberChef.
+    var hash=location.hash||"";
+    var full=document.getElementById("fulltab"); if(full) full.href="../cyberchef/index.html"+hash;
     function load(){
       if(loaded) return; loaded=true;
       var op=document.getElementById("opener"); if(op) op.remove();
       var wrap=document.getElementById("frameWrap"); wrap.hidden=false;
       var f=document.createElement("iframe");
-      f.title="CyberChef"; f.src="../cyberchef/index.html";
+      f.title="CyberChef"; f.src="../cyberchef/index.html"+hash;
       f.allow="clipboard-read; clipboard-write";
       f.onload=function(){ var l=document.getElementById("loading"); if(l) l.remove(); };
       wrap.appendChild(f);
     }
     document.getElementById("load").addEventListener("click", load);
+    // Load straight away when the link already carries a recipe or input.
+    if(/(^#|&)(recipe|input)=/.test(hash)) load();
   })();
 </script>
 </body>

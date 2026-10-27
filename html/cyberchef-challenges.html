@@ -287,7 +287,7 @@
       <li>Your work is judged by industry professionals in cybersecurity, risk, and audit, so a clear recommendation matters as much as the technical find.</li>
     </ul>
     <p style="font-size:13.5px;color:var(--muted);margin:12px 0 0">Part 2 ends with team formation, so come with one or two people you would want to work with.</p>
-    <p style="font-size:13.5px;color:var(--muted);margin:8px 0 0">Read more: <a class="inline" href="https://book.com.puter.tips/chapters/16_ctf/chapter16.html#case-study-competitions-when-the-deliverable-is-a-recommendation" target="_blank" rel="noopener">Section 16.9 of the textbook</a>, on case study competitions and this one in particular.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin:8px 0 0">Read more: <a class="inline" href="https://book.com.puter.tips/chapters/16_ctf/chapter16.html#case-study-competitions-when-the-deliverable-is-a-recommendation" target="_blank" rel="noopener">Section 16.9 of the textbook</a>, on case study competitions and this one in particular. The whole workshop, with worked solutions and recent incidents that show each mistake in the wild, is <a class="inline" href="https://book.com.puter.tips/chapters/16_ctf/chapter16.html#a-two-part-workshop-from-cyberchef-challenges-to-a-case-briefing" target="_blank" rel="noopener">Section 16.14</a>.</p>
   </section>
 
   <p class="footer">Built for the CyberNinjas club. CyberChef is an open-source tool from GCHQ and runs entirely in your browser. Flags use the format CN followed by braces.</p>
@@ -304,8 +304,9 @@ const FAM = {
 };
 
 const EXTRA = {
-  "P1-C3": "Try it: in CyberChef, swap XOR for XOR Brute Force. It needs no key at all: it tries all 256 and prints every result. Type CN{ into its Crib field and only the real message is left. That is what one weak byte buys an attacker.",
-  "P1-C4": "Try it: change a single digit of the key in CyberChef and watch the output collapse into noise. The key is the whole secret."
+  "P1-C3": "Try it: in CyberChef, swap XOR for XOR Brute Force. It needs no key at all: it tries every key from 01 to ff and prints every result. Type CN{ into its Crib field and only the real message is left. That is what one weak byte buys an attacker.",
+  "P1-C4": "Try it: change a single digit of the key in CyberChef and watch the output collapse into noise. The key is the whole secret.",
+  "P1-C5": "Try it: change one letter, say curdled to curdles, and compare the two digests. Nothing in the new one hints at the old. That is the avalanche effect."
 };
 
 const solved = new Set();
